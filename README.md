@@ -73,7 +73,13 @@ $ start chrome.exe .\book\index.html            # Windows (Cmd)
 $ cd packages/trpl
 $ mdbook test --library-path packages/trpl/target/debug/deps
 ```
+# 未来计划
+使用手搓+ai写一个基于ii8n.site或git2-rs+similar+pulldown-crmark从头编写一个支持如下功能的翻译模块：
+- 检测英文文档是否更新变动
+- 将markdown内容解析为对象（文本段落、标题、注释、代码）
+- ai翻译
 
+# 来自rust-lang/book官方仓库的说明
 ## 贡献指南（Contributing）
 
 我们非常欢迎你的帮助！请查看 [CONTRIBUTING.md][contrib] 了解我们正在寻找的贡献（contributions）类型。
