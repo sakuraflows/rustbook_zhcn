@@ -1,28 +1,39 @@
-# 《RUst程序设计语言》中文化计划
-正在开发中.....
-这个仓库包含《Rust 编程语言》一书的源代码。
+# 《RUst程序设计语言》中文翻译（ai机翻）
+正在翻译中.....
+20260516
 
-You can also read the book for free online. Please see the book as shipped with
-the latest [stable], [beta], or [nightly] Rust releases. Be aware that issues
-in those versions may have been fixed in this repository already, as those
-releases are updated less frequently.  
-你也可以在线免费阅读这本书。请将本书视为与最新的稳定版、测试版或夜间版 Rust 发行版一同提供。请注意，这些版本中可能存在的问题可能已经在本仓库中得到了修复，因为这些版本更新频率较低。
 
-[stable]: https://doc.rust-lang.org/stable/book/
-[beta]: https://doc.rust-lang.org/beta/book/
+
+
+你也可以在线免费阅读这本书。请将本书视为与最新的[稳定版]、[测试版]或[nightly] Rust 发行版一同提供。请注意，这些版本中可能存在的问题可能已经在本仓库中得到了修复，因为这些版本更新频率较低。
+
+[稳定版]: https://doc.rust-lang.org/stable/book/
+[测试版]: https://doc.rust-lang.org/beta/book/
 [nightly]: https://doc.rust-lang.org/nightly/book/
 
-See the [releases] to download just the code of all the code listings that appear in the book.
+请查看[发布页面（releases）][releases]以下载本书中所有代码清单（code listings）的代码。
 
 [releases]: https://github.com/rust-lang/book/releases
+## 使用的大模型及提示词
+- deepseek-v4-flash
+- 工具链：vscode+copilot+DeepSeek V4 for Copilot Chat
 
-## Requirements
+提示词：
+```
+请翻译这个markdown文件：
+要求：
+- 不翻译代码块，代码块中的代码要保持原样，但可以视情况翻译代码块中大段的注释。
+- 对于专业名词，要在翻译的同时，使用括号（）的形式，将英文原文注释在翻译内容的后面。
+```
 
-Building the book requires [mdBook], ideally the same version that
-rust-lang/rust uses in [this file][rust-mdbook]. To get it:
+## 构建依赖
+
+构建本书需要 [mdBook]，最好是与本项目中使用的版本相同（mdbook v0.5.2）。
+
+
+安装方法如下：
 
 [mdBook]: https://github.com/rust-lang/mdBook
-[rust-mdbook]: https://github.com/rust-lang/rust/blob/HEAD/src/tools/rustbook/Cargo.toml
 
 ```bash
 $ cargo install mdbook --locked --version <version_num>
@@ -36,10 +47,9 @@ $ cargo install mdbook --locked --version <version_num>
 $ mdbook build
 ```
 
-The output will be in the `book` subdirectory. To check it out, open it in
-your web browser.
+输出将位于 `book` 子目录中。要查看它，请在网页浏览器（web browser）中打开。
 
-_Firefox:_
+_Firefox（火狐浏览器）:_
 
 ```bash
 $ firefox book/index.html                       # Linux
@@ -48,7 +58,7 @@ $ Start-Process "firefox.exe" .\book\index.html # Windows (PowerShell)
 $ start firefox.exe .\book\index.html           # Windows (Cmd)
 ```
 
-_Chrome:_
+_Chrome（谷歌浏览器）:_
 
 ```bash
 $ google-chrome book/index.html                 # Linux
@@ -57,46 +67,30 @@ $ Start-Process "chrome.exe" .\book\index.html  # Windows (PowerShell)
 $ start chrome.exe .\book\index.html            # Windows (Cmd)
 ```
 
-To run the tests:
+要运行测试（tests）：
 
 ```bash
 $ cd packages/trpl
 $ mdbook test --library-path packages/trpl/target/debug/deps
 ```
 
-## Contributing
+## 贡献指南（Contributing）
 
-We'd love your help! Please see [CONTRIBUTING.md][contrib] to learn about the
-kinds of contributions we're looking for.
+我们非常欢迎你的帮助！请查看 [CONTRIBUTING.md][contrib] 了解我们正在寻找的贡献（contributions）类型。
 
 [contrib]: https://github.com/rust-lang/book/blob/main/CONTRIBUTING.md
 
-Because the book is [printed][nostarch], and because we want
-to keep the online version of the book close to the print version when
-possible, it may take longer than you're used to for us to address your issue
-or pull request.
+由于本书是[印刷版][nostarch]，并且我们希望尽可能保持在线版本与印刷版本一致，因此处理你的 issue（问题）或 pull request（拉取请求）可能需要比平时更长的时间。
 
-So far, we've been doing a larger revision to coincide with [Rust Editions](https://doc.rust-lang.org/edition-guide/). Between those larger
-revisions, we will only be correcting errors. If your issue or pull request
-isn't strictly fixing an error, it might sit until the next time that we're
-working on a large revision: expect on the order of months or years. Thank you
-for your patience!
+到目前为止，我们一直在配合 [Rust 版本（Editions）](https://doc.rust-lang.org/edition-guide/)进行较大规模的修订。在这些大规模修订之间，我们只会修正错误。如果你的 issue 或 pull request 严格来说不是修复错误，它可能会被搁置，直到我们下一次进行大规模修订：预计需要数月甚至数年的时间。感谢你的耐心！
 
-### Translations
+### 翻译（Translations）
 
-We'd love help translating the book! See the [Translations] label to join in
-efforts that are currently in progress. Open a new issue to start working on
-a new language! We're waiting on [mdbook support] for multiple languages
-before we merge any in, but feel free to start!
+我们非常希望得到翻译本书的帮助！请查看 [Translations] 标签以加入正在进行的翻译工作。开一个新的 issue 来开始一种新语言的翻译吧！我们正在等待 [mdbook 支持][mdbook support]多语言功能，之后才会合并这些翻译，但请随时开始！
 
 [Translations]: https://github.com/rust-lang/book/issues?q=is%3Aopen+is%3Aissue+label%3ATranslations
 [mdbook support]: https://github.com/rust-lang/mdBook/issues/5
 
-## Spellchecking
+## 拼写检查（Spellchecking）
 
-To scan source files for spelling errors, you can use the `spellcheck.sh`
-script available in the `ci` directory. It needs a dictionary of valid words,
-which is provided in `ci/dictionary.txt`. If the script produces a false
-positive (say, you used the word `BTreeMap` which the script considers invalid),
-you need to add this word to `ci/dictionary.txt` (keep the sorted order for
-consistency).
+要扫描源文件中的拼写错误，可以使用 `ci` 目录中的 `spellcheck.sh` 脚本。它需要一个有效单词的字典（dictionary），该字典位于 `ci/dictionary.txt`。如果脚本产生了误报（false positive，例如你使用了 `BTreeMap` 这个词，而脚本认为它无效），你需要将这个单词添加到 `ci/dictionary.txt` 中（保持排序顺序以保持一致性）。
