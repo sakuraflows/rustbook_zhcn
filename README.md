@@ -75,7 +75,9 @@ $ cd packages/trpl
 $ mdbook test --library-path packages/trpl/target/debug/deps
 ```
 ## 贡献
-本仓库希望并欢迎任何人的贡献,在贡献前请阅读如下内容:
+本仓库希望并欢迎任何人的贡献.同时,为了对rust-lang社区负责,我们希望新的翻译贡献所使用的翻译模块的能力不低于deepseek-v4.
+
+在贡献前请阅读如下内容:
 ### 文档结构说明
 事实上，通过查看[rust-lang/book]main分支可以发现，这套文档有两个历史版本和一个正在持续更新的版本，这个正在更新的版本的“文档源代码”（即markdown）
 在/src下。
