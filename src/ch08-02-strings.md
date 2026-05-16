@@ -1,51 +1,24 @@
-## Storing UTF-8 Encoded Text with Strings
+## 使用字符串（String）存储 UTF-8 编码的文本
 
-We talked about strings in Chapter 4, but we’ll look at them in more depth now.
-New Rustaceans commonly get stuck on strings for a combination of three
-reasons: Rust’s propensity for exposing possible errors, strings being a more
-complicated data structure than many programmers give them credit for, and
-UTF-8. These factors combine in a way that can seem difficult when you’re
-coming from other programming languages.
+我们在第 4 章讨论过字符串，但现在我们将更深入地研究它们。新 Rustaceans（Rust 初学者）经常在字符串问题上卡住，这是由于三个原因共同造成的：Rust 倾向于暴露可能的错误、字符串是一种比许多程序员所认为的更复杂的数据结构，以及 UTF-8。这些因素结合在一起，使得来自其他编程语言的人会感到困难。
 
-We discuss strings in the context of collections because strings are
-implemented as a collection of bytes, plus some methods to provide useful
-functionality when those bytes are interpreted as text. In this section, we’ll
-talk about the operations on `String` that every collection type has, such as
-creating, updating, and reading. We’ll also discuss the ways in which `String`
-is different from the other collections, namely, how indexing into a `String` is
-complicated by the differences between how people and computers interpret
-`String` data.
+我们在集合的语境下讨论字符串，因为字符串是作为字节集合实现的，再加上一些方法，用于在这些字节被解释为文本时提供有用的功能。在本节中，我们将讨论 `String` 上所有集合类型都具有的操作，例如创建、更新和读取。我们还将讨论 `String` 与其他集合的不同之处，即：由于人和计算机对 `String` 数据的解释方式不同，对 `String` 进行索引变得复杂。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id="what-is-a-string"></a>
 
-### Defining Strings
+### 定义字符串
 
-We’ll first define what we mean by the term _string_. Rust has only one string
-type in the core language, which is the string slice `str` that is usually seen
-in its borrowed form, `&str`. In Chapter 4, we talked about string slices,
-which are references to some UTF-8 encoded string data stored elsewhere. String
-literals, for example, are stored in the program’s binary and are therefore
-string slices.
+我们首先定义一下术语*字符串（string）*的含义。Rust 核心语言中只有一种字符串类型，那就是字符串切片（string slice）`str`，通常以其借用形式 `&str` 出现。在第 4 章中，我们讨论过字符串切片，它是对存储在其他位置的某些 UTF-8 编码字符串数据的引用。例如，字符串字面量（string literal）存储在程序的二进制文件中，因此是字符串切片。
 
-The `String` type, which is provided by Rust’s standard library rather than
-coded into the core language, is a growable, mutable, owned, UTF-8 encoded
-string type. When Rustaceans refer to “strings” in Rust, they might be
-referring to either the `String` or the string slice `&str` types, not just one
-of those types. Although this section is largely about `String`, both types are
-used heavily in Rust’s standard library, and both `String` and string slices
-are UTF-8 encoded.
+`String` 类型由 Rust 的标准库提供，而非核心语言内置，它是一种可增长的、可变的、拥有的、UTF-8 编码的字符串类型。当 Rustaceans 在 Rust 中提到"字符串"时，他们可能指的是 `String` 或字符串切片 `&str` 类型，而不仅仅是其中一种。尽管本节主要讨论 `String`，但两种类型在 Rust 标准库中都大量使用，并且 `String` 和字符串切片都是 UTF-8 编码的。
 
-### Creating a New String
+### 创建新字符串
 
-Many of the same operations available with `Vec<T>` are available with `String`
-as well because `String` is actually implemented as a wrapper around a vector
-of bytes with some extra guarantees, restrictions, and capabilities. An example
-of a function that works the same way with `Vec<T>` and `String` is the `new`
-function to create an instance, shown in Listing 8-11.
+`Vec<T>` 可用的许多操作同样适用于 `String`，因为 `String` 实际上是围绕一个字节向量（vector of bytes）实现的包装器，并带有一些额外的保证、限制和功能。一个对 `Vec<T>` 和 `String` 工作方式相同的函数的例子是用于创建实例的 `new` 函数，如示例 8-11 所示。
 
-<Listing number="8-11" caption="Creating a new, empty `String`">
+<Listing number="8-11" caption="创建一个新的空 `String`">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-11/src/main.rs:here}}
@@ -53,13 +26,9 @@ function to create an instance, shown in Listing 8-11.
 
 </Listing>
 
-This line creates a new, empty string called `s`, into which we can then load
-data. Often, we’ll have some initial data with which we want to start the
-string. For that, we use the `to_string` method, which is available on any type
-that implements the `Display` trait, as string literals do. Listing 8-12 shows
-two examples.
+这一行创建了一个名为 `s` 的新空字符串，然后我们可以向其中加载数据。通常，我们会有一些初始数据，希望用这些数据来初始化字符串。为此，我们使用 `to_string` 方法，该方法适用于任何实现了 `Display` trait 的类型，就像字符串字面量那样。示例 8-12 展示了两个例子。
 
-<Listing number="8-12" caption="Using the `to_string` method to create a `String` from a string literal">
+<Listing number="8-12" caption="使用 `to_string` 方法从字符串字面量创建 `String`">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-12/src/main.rs:here}}
@@ -67,13 +36,11 @@ two examples.
 
 </Listing>
 
-This code creates a string containing `initial contents`.
+这段代码创建了一个包含 `initial contents` 的字符串。
 
-We can also use the function `String::from` to create a `String` from a string
-literal. The code in Listing 8-13 is equivalent to the code in Listing 8-12
-that uses `to_string`.
+我们也可以使用 `String::from` 函数从字符串字面量创建 `String`。示例 8-13 中的代码与使用 `to_string` 的示例 8-12 中的代码是等价的。
 
-<Listing number="8-13" caption="Using the `String::from` function to create a `String` from a string literal">
+<Listing number="8-13" caption="使用 `String::from` 函数从字符串字面量创建 `String`">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-13/src/main.rs:here}}
@@ -81,16 +48,11 @@ that uses `to_string`.
 
 </Listing>
 
-Because strings are used for so many things, we can use many different generic
-APIs for strings, providing us with a lot of options. Some of them can seem
-redundant, but they all have their place! In this case, `String::from` and
-`to_string` do the same thing, so which one you choose is a matter of style and
-readability.
+因为字符串用途广泛，所以我们可以使用许多不同的通用 API 来处理字符串，这为我们提供了大量选择。其中一些可能看起来是多余的，但它们都有各自的用武之地！在这种情况下，`String::from` 和 `to_string` 做的是同一件事，所以选择哪一个取决于风格和可读性。
 
-Remember that strings are UTF-8 encoded, so we can include any properly encoded
-data in them, as shown in Listing 8-14.
+请记住，字符串是 UTF-8 编码的，因此我们可以在其中包含任何正确编码的数据，如示例 8-14 所示。
 
-<Listing number="8-14" caption="Storing greetings in different languages in strings">
+<Listing number="8-14" caption="在字符串中存储不同语言的问候语">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-14/src/main.rs:here}}
@@ -98,24 +60,21 @@ data in them, as shown in Listing 8-14.
 
 </Listing>
 
-All of these are valid `String` values.
+所有这些都是有效的 `String` 值。
 
-### Updating a String
+### 更新字符串
 
-A `String` can grow in size and its contents can change, just like the contents
-of a `Vec<T>`, if you push more data into it. In addition, you can conveniently
-use the `+` operator or the `format!` macro to concatenate `String` values.
+`String` 可以增大其大小，其内容也可以改变，就像 `Vec<T>` 一样，如果你向其中推入更多数据的话。此外，你可以方便地使用 `+` 运算符或 `format!` 宏来拼接 `String` 值。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id="appending-to-a-string-with-push_str-and-push"></a>
 
-#### Appending with `push_str` or `push`
+#### 使用 `push_str` 或 `push` 追加
 
-We can grow a `String` by using the `push_str` method to append a string slice,
-as shown in Listing 8-15.
+我们可以使用 `push_str` 方法来追加一个字符串切片，从而使 `String` 增长，如示例 8-15 所示。
 
-<Listing number="8-15" caption="Appending a string slice to a `String` using the `push_str` method">
+<Listing number="8-15" caption="使用 `push_str` 方法向 `String` 追加字符串切片">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-15/src/main.rs:here}}
@@ -123,12 +82,9 @@ as shown in Listing 8-15.
 
 </Listing>
 
-After these two lines, `s` will contain `foobar`. The `push_str` method takes a
-string slice because we don’t necessarily want to take ownership of the
-parameter. For example, in the code in Listing 8-16, we want to be able to use
-`s2` after appending its contents to `s1`.
+经过这两行之后，`s` 将包含 `foobar`。`push_str` 方法接受一个字符串切片，因为我们不一定需要获取参数的所有权。例如，在示例 8-16 的代码中，我们希望将 `s2` 的内容追加到 `s1` 之后，仍然能够使用 `s2`。
 
-<Listing number="8-16" caption="Using a string slice after appending its contents to a `String`">
+<Listing number="8-16" caption="在将字符串切片的内容追加到 `String` 后继续使用它">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-16/src/main.rs:here}}
@@ -136,14 +92,11 @@ parameter. For example, in the code in Listing 8-16, we want to be able to use
 
 </Listing>
 
-If the `push_str` method took ownership of `s2`, we wouldn’t be able to print
-its value on the last line. However, this code works as we’d expect!
+如果 `push_str` 方法获取了 `s2` 的所有权，我们就无法在最后一行打印它的值了。然而，这段代码正如我们所期望的那样工作！
 
-The `push` method takes a single character as a parameter and adds it to the
-`String`. Listing 8-17 adds the letter _l_ to a `String` using the `push`
-method.
+`push` 方法接受单个字符作为参数，并将其添加到 `String` 中。示例 8-17 使用 `push` 方法向 `String` 添加字母 _l_。
 
-<Listing number="8-17" caption="Adding one character to a `String` value using `push`">
+<Listing number="8-17" caption="使用 `push` 向 `String` 值添加一个字符">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-17/src/main.rs:here}}
@@ -151,18 +104,17 @@ method.
 
 </Listing>
 
-As a result, `s` will contain `lol`.
+结果，`s` 将包含 `lol`。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id="concatenation-with-the--operator-or-the-format-macro"></a>
 
-#### Concatenating with `+` or `format!`
+#### 使用 `+` 或 `format!` 进行拼接
 
-Often, you’ll want to combine two existing strings. One way to do so is to use
-the `+` operator, as shown in Listing 8-18.
+通常，你会想要合并两个现有的字符串。一种方法是使用 `+` 运算符，如示例 8-18 所示。
 
-<Listing number="8-18" caption="Using the `+` operator to combine two `String` values into a new `String` value">
+<Listing number="8-18" caption="使用 `+` 运算符将两个 `String` 值合并为一个新的 `String` 值">
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-18/src/main.rs:here}}
@@ -170,74 +122,39 @@ the `+` operator, as shown in Listing 8-18.
 
 </Listing>
 
-The string `s3` will contain `Hello, world!`. The reason `s1` is no longer
-valid after the addition, and the reason we used a reference to `s2`, has to do
-with the signature of the method that’s called when we use the `+` operator.
-The `+` operator uses the `add` method, whose signature looks something like
-this:
+字符串 `s3` 将包含 `Hello, world!`。`s1` 在加法之后不再有效的原因，以及我们使用 `s2` 的引用的原因，与使用 `+` 运算符时调用的方法的签名有关。`+` 运算符使用了 `add` 方法，其签名大致如下：
 
 ```rust,ignore
 fn add(self, s: &str) -> String {
 ```
 
-In the standard library, you’ll see `add` defined using generics and associated
-types. Here, we’ve substituted in concrete types, which is what happens when we
-call this method with `String` values. We’ll discuss generics in Chapter 10.
-This signature gives us the clues we need in order to understand the tricky
-bits of the `+` operator.
+在标准库中，你会看到 `add` 是通过泛型和关联类型（associated types）定义的。这里我们替换成了具体类型，也就是当我们将 `String` 值传入该方法时实际发生的情况。我们将在第 10 章讨论泛型。这个签名为我们提供了理解 `+` 运算符棘手之处所需的线索。
 
-First, `s2` has an `&`, meaning that we’re adding a reference of the second
-string to the first string. This is because of the `s` parameter in the `add`
-function: We can only add a string slice to a `String`; we can’t add two
-`String` values together. But wait—the type of `&s2` is `&String`, not `&str`,
-as specified in the second parameter to `add`. So, why does Listing 8-18
-compile?
+首先，`s2` 带有 `&`，意味着我们是将第二个字符串的引用添加到第一个字符串。这是因为 `add` 函数中的 `s` 参数：我们只能将字符串切片添加到 `String`；不能将两个 `String` 值相加。但是等等——`&s2` 的类型是 `&String`，而不是 `add` 第二个参数所指定的 `&str`。那么，为什么示例 8-18 能编译通过呢？
 
-The reason we’re able to use `&s2` in the call to `add` is that the compiler
-can coerce the `&String` argument into a `&str`. When we call the `add` method,
-Rust uses a deref coercion, which here turns `&s2` into `&s2[..]`. We’ll
-discuss deref coercion in more depth in Chapter 15. Because `add` does not take
-ownership of the `s` parameter, `s2` will still be a valid `String` after this
-operation.
+我们能够在调用 `add` 时使用 `&s2` 的原因是编译器可以将 `&String` 参数强制转换为 `&str`。当我们调用 `add` 方法时，Rust 使用了解引用强制多态（deref coercion），在这里它将 `&s2` 转换为 `&s2[..]`。我们将在第 15 章更深入地讨论解引用强制多态。因为 `add` 不获取 `s` 参数的所有权，所以 `s2` 在此操作之后仍然是有效的 `String`。
 
-Second, we can see in the signature that `add` takes ownership of `self`
-because `self` does _not_ have an `&`. This means `s1` in Listing 8-18 will be
-moved into the `add` call and will no longer be valid after that. So, although
-`let s3 = s1 + &s2;` looks like it will copy both strings and create a new one,
-this statement actually takes ownership of `s1`, appends a copy of the contents
-of `s2`, and then returns ownership of the result. In other words, it looks
-like it’s making a lot of copies, but it isn’t; the implementation is more
-efficient than copying.
+其次，我们在签名中可以看到 `add` 获取了 `self` 的所有权，因为 `self` _没有_ `&`。这意味着示例 8-18 中的 `s1` 将被移入 `add` 调用中，并在那之后不再有效。因此，尽管 `let s3 = s1 + &s2;` 看起来像是会复制两个字符串并创建一个新的字符串，但实际上这个语句获取了 `s1` 的所有权，追加了 `s2` 内容的副本，然后返回结果的所有权。换句话说，它看起来像是在做大量的拷贝，但实际上并非如此；实现比复制更加高效。
 
-If we need to concatenate multiple strings, the behavior of the `+` operator
-gets unwieldy:
+如果我们需要拼接多个字符串，`+` 运算符的行为将变得笨拙：
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/no-listing-01-concat-multiple-strings/src/main.rs:here}}
 ```
 
-At this point, `s` will be `tic-tac-toe`. With all of the `+` and `"`
-characters, it’s difficult to see what’s going on. For combining strings in
-more complicated ways, we can instead use the `format!` macro:
+此时，`s` 将是 `tic-tac-toe`。有了所有这些 `+` 和 `"` 字符，很难看清楚发生了什么。对于更复杂的字符串组合，我们可以改用 `format!` 宏：
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/no-listing-02-format/src/main.rs:here}}
 ```
 
-This code also sets `s` to `tic-tac-toe`. The `format!` macro works like
-`println!`, but instead of printing the output to the screen, it returns a
-`String` with the contents. The version of the code using `format!` is much
-easier to read, and the code generated by the `format!` macro uses references
-so that this call doesn’t take ownership of any of its parameters.
+这段代码也将 `s` 设置为 `tic-tac-toe`。`format!` 宏的工作方式类似于 `println!`，但它不是将输出打印到屏幕，而是返回一个包含内容的 `String`。使用 `format!` 的代码版本更易于阅读，并且 `format!` 宏生成的代码使用的是引用，因此该调用不会获取任何参数的所有权。
 
-### Indexing into Strings
+### 索引字符串
 
-In many other programming languages, accessing individual characters in a
-string by referencing them by index is a valid and common operation. However,
-if you try to access parts of a `String` using indexing syntax in Rust, you’ll
-get an error. Consider the invalid code in Listing 8-19.
+在许多其他编程语言中，通过索引引用字符串中的单个字符是一种有效且常见的操作。然而，如果你尝试在 Rust 中使用索引语法访问 `String` 的部分内容，你将得到一个错误。考虑示例 8-19 中无效的代码。
 
-<Listing number="8-19" caption="Attempting to use indexing syntax with a `String`">
+<Listing number="8-19" caption="尝试对 `String` 使用索引语法">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-19/src/main.rs:here}}
@@ -245,112 +162,75 @@ get an error. Consider the invalid code in Listing 8-19.
 
 </Listing>
 
-This code will result in the following error:
+这段代码将导致以下错误：
 
 ```console
 {{#include ../listings/ch08-common-collections/listing-08-19/output.txt}}
 ```
 
-The error tells the story: Rust strings don’t support indexing. But why not? To
-answer that question, we need to discuss how Rust stores strings in memory.
+错误说明了一切：Rust 字符串不支持索引。但为什么不支持呢？要回答这个问题，我们需要讨论 Rust 如何在内存中存储字符串。
 
-#### Internal Representation
+#### 内部表示
 
-A `String` is a wrapper over a `Vec<u8>`. Let’s look at some of our properly
-encoded UTF-8 example strings from Listing 8-14. First, this one:
+`String` 是对 `Vec<u8>` 的包装。让我们看看示例 8-14 中一些正确编码的 UTF-8 示例字符串。首先是这个：
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-14/src/main.rs:spanish}}
 ```
 
-In this case, `len` will be `4`, which means the vector storing the string
-`"Hola"` is 4 bytes long. Each of these letters takes 1 byte when encoded in
-UTF-8. The following line, however, may surprise you (note that this string
-begins with the capital Cyrillic letter _Ze_, not the number 3):
+在这种情况下，`len` 将是 `4`，这意味着存储字符串 `"Hola"` 的向量长度为 4 字节。这些字母每个在用 UTF-8 编码时占用 1 字节。然而，下面这一行可能会让你感到惊讶（注意，这个字符串以大写西里尔字母 _Ze_ 开头，而不是数字 3）：
 
 ```rust
 {{#rustdoc_include ../listings/ch08-common-collections/listing-08-14/src/main.rs:russian}}
 ```
 
-If you were asked how long the string is, you might say 12. In fact, Rust’s
-answer is 24: That’s the number of bytes it takes to encode “Здравствуйте” in
-UTF-8, because each Unicode scalar value in that string takes 2 bytes of
-storage. Therefore, an index into the string’s bytes will not always correlate
-to a valid Unicode scalar value. To demonstrate, consider this invalid Rust
-code:
+如果有人问你该字符串有多长，你可能会说 12。实际上，Rust 的答案是 24：这是用 UTF-8 编码"Здравствуйте"所需的字节数，因为该字符串中的每个 Unicode 标量值（Unicode scalar value）占用 2 字节的存储空间。因此，对字符串字节的索引并不总是与有效的 Unicode 标量值对应。为了说明这一点，请考虑以下无效的 Rust 代码：
 
 ```rust,ignore,does_not_compile
 let hello = "Здравствуйте";
 let answer = &hello[0];
 ```
 
-You already know that `answer` will not be `З`, the first letter. When encoded
-in UTF-8, the first byte of `З` is `208` and the second is `151`, so it would
-seem that `answer` should in fact be `208`, but `208` is not a valid character
-on its own. Returning `208` is likely not what a user would want if they asked
-for the first letter of this string; however, that’s the only data that Rust
-has at byte index 0. Users generally don’t want the byte value returned, even
-if the string contains only Latin letters: If `&"hi"[0]` were valid code that
-returned the byte value, it would return `104`, not `h`.
+你已经知道 `answer` 不会是 `З`，即第一个字母。在用 UTF-8 编码时，`З` 的第一个字节是 `208`，第二个字节是 `151`，所以看起来 `answer` 实际上应该是 `208`，但 `208` 本身并不是一个有效的字符。返回 `208` 很可能不是用户想要的结果，当他们要求该字符串的第一个字母时；然而，这是 Rust 在字节索引 0 处所拥有的唯一数据。用户通常不希望返回字节值，即使字符串只包含拉丁字母也是如此：如果 `&"hi"[0]` 是返回字节值的有效代码，它将返回 `104`，而不是 `h`。
 
-The answer, then, is that to avoid returning an unexpected value and causing
-bugs that might not be discovered immediately, Rust doesn’t compile this code
-at all and prevents misunderstandings early in the development process.
+因此，答案是：为了避免返回意外值并可能导致无法立即发现的 bug，Rust 根本不会编译这段代码，并在开发过程的早期就防止误解。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id="bytes-and-scalar-values-and-grapheme-clusters-oh-my"></a>
 
-#### Bytes, Scalar Values, and Grapheme Clusters
+#### 字节、标量值和字素簇（Grapheme Cluster）
 
-Another point about UTF-8 is that there are actually three relevant ways to
-look at strings from Rust’s perspective: as bytes, scalar values, and grapheme
-clusters (the closest thing to what we would call _letters_).
+关于 UTF-8 的另一点是，从 Rust 的角度来看，实际上有三种相关的方式来看待字符串：作为字节（bytes）、作为标量值（scalar values）和作为字素簇（grapheme clusters，最接近我们所说的*字母*的概念）。
 
-If we look at the Hindi word “नमस्ते” written in the Devanagari script, it is
-stored as a vector of `u8` values that looks like this:
+如果我们看看用天城文书写的印地语单词"नमस्ते"，它存储为如下所示的 `u8` 值向量：
 
 ```text
 [224, 164, 168, 224, 164, 174, 224, 164, 184, 224, 165, 141, 224, 164, 164,
 224, 165, 135]
 ```
 
-That’s 18 bytes and is how computers ultimately store this data. If we look at
-them as Unicode scalar values, which are what Rust’s `char` type is, those
-bytes look like this:
+这是 18 个字节，也是计算机最终存储这些数据的方式。如果我们将其视为 Unicode 标量值——也就是 Rust 的 `char` 类型——这些字节看起来像这样：
 
 ```text
 ['न', 'म', 'स', '्', 'त', 'े']
 ```
 
-There are six `char` values here, but the fourth and sixth are not letters:
-They’re diacritics that don’t make sense on their own. Finally, if we look at
-them as grapheme clusters, we’d get what a person would call the four letters
-that make up the Hindi word:
+这里有六个 `char` 值，但第四个和第六个不是字母：它们是变音符号（diacritics），单独存在没有意义。最后，如果我们将其视为字素簇，就会得到人们所说的组成这个印地语单词的四个字母：
 
 ```text
 ["न", "म", "स्", "ते"]
 ```
 
-Rust provides different ways of interpreting the raw string data that computers
-store so that each program can choose the interpretation it needs, no matter
-what human language the data is in.
+Rust 提供了不同的方式来解释计算机存储的原始字符串数据，以便每个程序可以选择它需要的解释方式，无论数据使用的是哪种人类语言。
 
-A final reason Rust doesn’t allow us to index into a `String` to get a
-character is that indexing operations are expected to always take constant time
-(O(1)). But it isn’t possible to guarantee that performance with a `String`,
-because Rust would have to walk through the contents from the beginning to the
-index to determine how many valid characters there were.
+Rust 不允许我们对 `String` 进行索引以获取字符的最后一个原因是，索引操作应该始终是常数时间（O(1)）。但是，对于 `String` 来说，无法保证这种性能，因为 Rust 必须从头遍历内容直到索引位置，以确定有多少有效字符。
 
-### Slicing Strings
+### 切片字符串
 
-Indexing into a string is often a bad idea because it’s not clear what the
-return type of the string-indexing operation should be: a byte value, a
-character, a grapheme cluster, or a string slice. If you really need to use
-indices to create string slices, therefore, Rust asks you to be more specific.
+对字符串进行索引通常不是一个好主意，因为不清楚字符串索引操作的返回类型应该是什么：一个字节值、一个字符、一个字素簇还是一个字符串切片。因此，如果你确实需要使用索引来创建字符串切片，Rust 要求你更具体一些。
 
-Rather than indexing using `[]` with a single number, you can use `[]` with a
-range to create a string slice containing particular bytes:
+与其使用带有单个数字的 `[]` 进行索引，不如使用带有范围的 `[]` 来创建包含特定字节的字符串切片：
 
 ```rust
 let hello = "Здравствуйте";
@@ -358,31 +238,23 @@ let hello = "Здравствуйте";
 let s = &hello[0..4];
 ```
 
-Here, `s` will be a `&str` that contains the first 4 bytes of the string.
-Earlier, we mentioned that each of these characters was 2 bytes, which means
-`s` will be `Зд`.
+在这里，`s` 将是一个 `&str`，包含字符串的前 4 个字节。之前，我们提到每个字符是 2 个字节，这意味着 `s` 将是 `Зд`。
 
-If we were to try to slice only part of a character’s bytes with something like
-`&hello[0..1]`, Rust would panic at runtime in the same way as if an invalid
-index were accessed in a vector:
+如果我们尝试切割一个字符的部分字节，比如 `&hello[0..1]`，Rust 会在运行时 panic，就像在向量中访问了无效索引一样：
 
 ```console
 {{#include ../listings/ch08-common-collections/output-only-01-not-char-boundary/output.txt}}
 ```
 
-You should use caution when creating string slices with ranges, because doing
-so can crash your program.
+在创建带有范围的字符串切片时应谨慎，因为这可能会导致程序崩溃。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id="methods-for-iterating-over-strings"></a>
 
-### Iterating Over Strings
+### 遍历字符串
 
-The best way to operate on pieces of strings is to be explicit about whether
-you want characters or bytes. For individual Unicode scalar values, use the
-`chars` method. Calling `chars` on “Зд” separates out and returns two values of
-type `char`, and you can iterate over the result to access each element:
+操作字符串片段的最佳方式是明确你想要的是字符还是字节。对于单个 Unicode 标量值，使用 `chars` 方法。对"Зд"调用 `chars` 会将它们分离并返回两个 `char` 类型的值，你可以遍历结果来访问每个元素：
 
 ```rust
 for c in "Зд".chars() {
@@ -390,15 +262,14 @@ for c in "Зд".chars() {
 }
 ```
 
-This code will print the following:
+这段代码将打印以下内容：
 
 ```text
 З
 д
 ```
 
-Alternatively, the `bytes` method returns each raw byte, which might be
-appropriate for your domain:
+另外，`bytes` 方法返回每个原始字节，这可能适用于你的特定领域：
 
 ```rust
 for b in "Зд".bytes() {
@@ -406,7 +277,7 @@ for b in "Зд".bytes() {
 }
 ```
 
-This code will print the 4 bytes that make up this string:
+这段代码将打印组成该字符串的 4 个字节：
 
 ```text
 208
@@ -415,33 +286,18 @@ This code will print the 4 bytes that make up this string:
 180
 ```
 
-But be sure to remember that valid Unicode scalar values may be made up of more
-than 1 byte.
+但请务必记住，有效的 Unicode 标量值可能由超过 1 个字节组成。
 
-Getting grapheme clusters from strings, as with the Devanagari script, is
-complex, so this functionality is not provided by the standard library. Crates
-are available on [crates.io](https://crates.io/)<!-- ignore --> if this is the
-functionality you need.
+从字符串中获取字素簇（如天城文脚本那样）是复杂的，因此标准库不提供此功能。如果这是你需要的功能，可以在 [crates.io](https://crates.io/)<!-- ignore --> 上找到相关的 crate。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id="strings-are-not-so-simple"></a>
 
-### Handling the Complexities of Strings
+### 处理字符串的复杂性
 
-To summarize, strings are complicated. Different programming languages make
-different choices about how to present this complexity to the programmer. Rust
-has chosen to make the correct handling of `String` data the default behavior
-for all Rust programs, which means programmers have to put more thought into
-handling UTF-8 data up front. This trade-off exposes more of the complexity of
-strings than is apparent in other programming languages, but it prevents you
-from having to handle errors involving non-ASCII characters later in your
-development life cycle.
+总而言之，字符串是复杂的。不同的编程语言对于如何向程序员呈现这种复杂性做出了不同的选择。Rust 选择了让所有 Rust 程序的默认行为是正确处理 `String` 数据，这意味着程序员需要提前更多地思考如何处理 UTF-8 数据。这种权衡暴露了比其他编程语言更多的字符串复杂性，但它防止了你在开发生命周期的后期处理涉及非 ASCII 字符的错误。
 
-The good news is that the standard library offers a lot of functionality built
-off the `String` and `&str` types to help handle these complex situations
-correctly. Be sure to check out the documentation for useful methods like
-`contains` for searching in a string and `replace` for substituting parts of a
-string with another string.
+好消息是，标准库提供了大量基于 `String` 和 `&str` 类型构建的功能，以帮助正确处理这些复杂情况。请务必查阅文档，了解有用的方法，例如用于在字符串中搜索的 `contains` 和用于将字符串的一部分替换为另一个字符串的 `replace`。
 
-Let’s switch to something a bit less complex: hash maps!
+接下来让我们转向稍微不那么复杂的东西：哈希映射（hash maps）！

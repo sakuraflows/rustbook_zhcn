@@ -1,13 +1,8 @@
-## Reading a File
+## 读取文件（Reading a File）
 
-Now we’ll add functionality to read the file specified in the `file_path`
-argument. First, we need a sample file to test it with: We’ll use a file with a
-small amount of text over multiple lines with some repeated words. Listing 12-3
-has an Emily Dickinson poem that will work well! Create a file called
-_poem.txt_ at the root level of your project, and enter the poem “I’m Nobody!
-Who are you?”
+现在我们将添加功能来读取 `file_path` 参数中指定的文件。首先，我们需要一个示例文件来进行测试：我们将使用一个包含少量文本、多行且有一些重复单词的文件。示例 12-3 中艾米莉·狄金森的一首诗就很好用！在项目的根目录下创建一个名为 _poem.txt_ 的文件，并输入诗歌"我是无名之辈！你是谁？"
 
-<Listing number="12-3" file-name="poem.txt" caption="A poem by Emily Dickinson makes a good test case.">
+<Listing number="12-3" file-name="poem.txt" caption="艾米莉·狄金森的一首诗，是个很好的测试案例">
 
 ```text
 {{#include ../listings/ch12-an-io-project/listing-12-03/poem.txt}}
@@ -15,10 +10,9 @@ Who are you?”
 
 </Listing>
 
-With the text in place, edit _src/main.rs_ and add code to read the file, as
-shown in Listing 12-4.
+文本就位后，编辑 _src/main.rs_ 并添加读取文件的代码，如示例 12-4 所示。
 
-<Listing number="12-4" file-name="src/main.rs" caption="Reading the contents of the file specified by the second argument">
+<Listing number="12-4" file-name="src/main.rs" caption="读取由第二个参数指定的文件的内容">
 
 ```rust,should_panic,noplayground
 {{#rustdoc_include ../listings/ch12-an-io-project/listing-12-04/src/main.rs:here}}
@@ -26,31 +20,16 @@ shown in Listing 12-4.
 
 </Listing>
 
-First, we bring in a relevant part of the standard library with a `use`
-statement: We need `std::fs` to handle files.
+首先，我们使用 `use` 语句引入标准库的一个相关部分：我们需要 `std::fs` 来处理文件。
 
-In `main`, the new statement `fs::read_to_string` takes the `file_path`, opens
-that file, and returns a value of type `std::io::Result<String>` that contains
-the file’s contents.
+在 `main` 中，新的语句 `fs::read_to_string` 接受 `file_path`，打开该文件，并返回一个包含文件内容的 `std::io::Result<String>` 类型的值。
 
-After that, we again add a temporary `println!` statement that prints the value
-of `contents` after the file is read so that we can check that the program is
-working so far.
+之后，我们再次添加一个临时的 `println!` 语句，在读取文件后打印 `contents` 的值，以便我们可以检查程序到目前为止是否正常工作。
 
-Let’s run this code with any string as the first command line argument (because
-we haven’t implemented the searching part yet) and the _poem.txt_ file as the
-second argument:
+让我们使用任意字符串作为第一个命令行参数（因为我们尚未实现搜索部分），并将 _poem.txt_ 文件作为第二个参数来运行此代码：
 
 ```console
 {{#rustdoc_include ../listings/ch12-an-io-project/listing-12-04/output.txt}}
 ```
 
-Great! The code read and then printed the contents of the file. But the code
-has a few flaws. At the moment, the `main` function has multiple
-responsibilities: Generally, functions are clearer and easier to maintain if
-each function is responsible for only one idea. The other problem is that we’re
-not handling errors as well as we could. The program is still small, so these
-flaws aren’t a big problem, but as the program grows, it will be harder to fix
-them cleanly. It’s a good practice to begin refactoring early on when
-developing a program because it’s much easier to refactor smaller amounts of
-code. We’ll do that next.
+很好！代码读取并打印了文件的内容。但代码有一些缺陷。目前，`main` 函数有多个职责：通常，如果每个函数只负责一个概念，函数会更清晰且更易于维护。另一个问题是我们没有尽可能好地处理错误。程序仍然很小，所以这些缺陷不是大问题，但随着程序增长，将更难干净地修复它们。在开发程序时尽早开始重构是一个好习惯，因为重构少量代码要容易得多。我们接下来将这样做。
