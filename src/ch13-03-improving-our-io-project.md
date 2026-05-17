@@ -1,19 +1,12 @@
-## Improving Our I/O Project
+## 改进我们的 I/O 项目
 
-With this new knowledge about iterators, we can improve the I/O project in
-Chapter 12 by using iterators to make places in the code clearer and more
-concise. Let’s look at how iterators can improve our implementation of the
-`Config::build` function and the `search` function.
+有了这些关于迭代器的新知识，我们可以使用迭代器来改进第 12 章的 I/O 项目，使代码中的某些部分更加清晰和简洁。让我们看看迭代器如何改进我们的 `Config::build` 函数和 `search` 函数的实现。
 
-### Removing a `clone` Using an Iterator
+### 使用迭代器移除一个 `clone`
 
-In Listing 12-6, we added code that took a slice of `String` values and created
-an instance of the `Config` struct by indexing into the slice and cloning the
-values, allowing the `Config` struct to own those values. In Listing 13-17,
-we’ve reproduced the implementation of the `Config::build` function as it was
-in Listing 12-23.
+在示例 12-6 中，我们添加了代码，获取了一个 `String` 值的切片，通过索引切片并克隆值来创建 `Config` 结构体的实例，从而使 `Config` 结构体拥有这些值。在示例 13-17 中，我们重现了示例 12-23 中 `Config::build` 函数的实现。
 
-<Listing number="13-17" file-name="src/main.rs" caption="Reproduction of the `Config::build` function from Listing 12-23">
+<Listing number="13-17" file-name="src/main.rs" caption="来自示例 12-23 的 `Config::build` 函数的重现">
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch13-functional-features/listing-12-23-reproduced/src/main.rs:ch13}}
@@ -21,28 +14,17 @@ in Listing 12-23.
 
 </Listing>
 
-At the time, we said not to worry about the inefficient `clone` calls because
-we would remove them in the future. Well, that time is now!
+当时，我们说不必担心低效的 `clone` 调用，因为我们将来会移除它们。好吧，现在就是时候了！
 
-We needed `clone` here because we have a slice with `String` elements in the
-parameter `args`, but the `build` function doesn’t own `args`. To return
-ownership of a `Config` instance, we had to clone the values from the `query`
-and `file_path` fields of `Config` so that the `Config` instance can own its
-values.
+我们在这里需要 `clone`，因为我们在参数 `args` 中有一个包含 `String` 元素的切片，但 `build` 函数并不拥有 `args`。为了返回 `Config` 实例的所有权，我们不得不从 `query` 和 `file_path` 字段克隆值，以便 `Config` 实例可以拥有其值。
 
-With our new knowledge about iterators, we can change the `build` function to
-take ownership of an iterator as its argument instead of borrowing a slice.
-We’ll use the iterator functionality instead of the code that checks the length
-of the slice and indexes into specific locations. This will clarify what the
-`Config::build` function is doing because the iterator will access the values.
+有了关于迭代器的新知识，我们可以更改 `build` 函数，使其获取迭代器的所有权作为参数，而不是借用切片。我们将使用迭代器功能，而不是检查切片长度和索引特定位置的代码。这将澄清 `Config::build` 函数正在做什么，因为迭代器将访问这些值。
 
-Once `Config::build` takes ownership of the iterator and stops using indexing
-operations that borrow, we can move the `String` values from the iterator into
-`Config` rather than calling `clone` and making a new allocation.
+一旦 `Config::build` 获取了迭代器的所有权并停止使用借用的索引操作，我们可以将 `String` 值从迭代器移入 `Config`，而不是调用 `clone` 并进行新的分配。
 
-#### Using the Returned Iterator Directly
+#### 直接使用返回的迭代器
 
-Open your I/O project’s _src/main.rs_ file, which should look like this:
+打开你的 I/O 项目的 _src/main.rs_ 文件，它应该如下所示：
 
 <span class="filename">Filename: src/main.rs</span>
 
@@ -50,11 +32,9 @@ Open your I/O project’s _src/main.rs_ file, which should look like this:
 {{#rustdoc_include ../listings/ch13-functional-features/listing-12-24-reproduced/src/main.rs:ch13}}
 ```
 
-We’ll first change the start of the `main` function that we had in Listing
-12-24 to the code in Listing 13-18, which this time uses an iterator. This
-won’t compile until we update `Config::build` as well.
+我们首先将示例 12-24 中的 `main` 函数开头改为示例 13-18 中的代码，这次使用了迭代器。在更新 `Config::build` 之前，这还不能编译。
 
-<Listing number="13-18" file-name="src/main.rs" caption="Passing the return value of `env::args` to `Config::build`">
+<Listing number="13-18" file-name="src/main.rs" caption="将 `env::args` 的返回值传递给 `Config::build`">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-18/src/main.rs:here}}
@@ -62,16 +42,11 @@ won’t compile until we update `Config::build` as well.
 
 </Listing>
 
-The `env::args` function returns an iterator! Rather than collecting the
-iterator values into a vector and then passing a slice to `Config::build`, now
-we’re passing ownership of the iterator returned from `env::args` to
-`Config::build` directly.
+`env::args` 函数返回一个迭代器！现在，我们不将迭代器值收集到向量中然后将切片传递给 `Config::build`，而是直接将 `env::args` 返回的迭代器的所有权传递给 `Config::build`。
 
-Next, we need to update the definition of `Config::build`. Let’s change the
-signature of `Config::build` to look like Listing 13-19. This still won’t
-compile, because we need to update the function body.
+接下来，我们需要更新 `Config::build` 的定义。让我们将 `Config::build` 的签名改为示例 13-19 所示。这仍然不能编译，因为我们需要更新函数体。
 
-<Listing number="13-19" file-name="src/main.rs" caption="Updating the signature of `Config::build` to expect an iterator">
+<Listing number="13-19" file-name="src/main.rs" caption="更新 `Config::build` 的签名以期望迭代器">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-19/src/main.rs:here}}
@@ -79,32 +54,21 @@ compile, because we need to update the function body.
 
 </Listing>
 
-The standard library documentation for the `env::args` function shows that the
-type of the iterator it returns is `std::env::Args`, and that type implements
-the `Iterator` trait and returns `String` values.
+`env::args` 函数的标准库文档显示，它返回的迭代器的类型是 `std::env::Args`，该类型实现了 `Iterator` trait 并返回 `String` 值。
 
-We’ve updated the signature of the `Config::build` function so that the
-parameter `args` has a generic type with the trait bounds `impl Iterator<Item =
-String>` instead of `&[String]`. This usage of the `impl Trait` syntax we
-discussed in the [“Using Traits as Parameters”][impl-trait]<!-- ignore -->
-section of Chapter 10 means that `args` can be any type that implements the
-`Iterator` trait and returns `String` items.
+我们更新了 `Config::build` 函数的签名，使参数 `args` 具有泛型类型，并带有 trait 约束 `impl Iterator<Item = String>` 而不是 `&[String]`。我们在第 10 章的[“使用 Trait 作为参数”][impl-trait]<!-- ignore -->部分讨论的这种 `impl Trait` 语法意味着 `args` 可以是任何实现了 `Iterator` trait 并返回 `String` 项的类型。
 
-Because we’re taking ownership of `args` and we’ll be mutating `args` by
-iterating over it, we can add the `mut` keyword into the specification of the
-`args` parameter to make it mutable.
+因为我们正在获取 `args` 的所有权，并且将通过遍历它来修改 `args`，我们可以在 `args` 参数的规范中添加 `mut` 关键字使其可变。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id="using-iterator-trait-methods-instead-of-indexing"></a>
 
-#### Using `Iterator` Trait Methods
+#### 使用 `Iterator` Trait 方法
 
-Next, we’ll fix the body of `Config::build`. Because `args` implements the
-`Iterator` trait, we know we can call the `next` method on it! Listing 13-20
-updates the code from Listing 12-23 to use the `next` method.
+接下来，我们将修复 `Config::build` 的函数体。因为 `args` 实现了 `Iterator` trait，我们知道可以在它上面调用 `next` 方法！示例 13-20 更新了示例 12-23 中的代码以使用 `next` 方法。
 
-<Listing number="13-20" file-name="src/main.rs" caption="Changing the body of `Config::build` to use iterator methods">
+<Listing number="13-20" file-name="src/main.rs" caption="更改 `Config::build` 的函数体以使用迭代器方法">
 
 ```rust,ignore,noplayground
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-20/src/main.rs:here}}
@@ -112,24 +76,17 @@ updates the code from Listing 12-23 to use the `next` method.
 
 </Listing>
 
-Remember that the first value in the return value of `env::args` is the name of
-the program. We want to ignore that and get to the next value, so first we call
-`next` and do nothing with the return value. Then, we call `next` to get the
-value we want to put in the `query` field of `Config`. If `next` returns
-`Some`, we use a `match` to extract the value. If it returns `None`, it means
-not enough arguments were given, and we return early with an `Err` value. We do
-the same thing for the `file_path` value.
+记住，`env::args` 返回值中的第一个值是程序名称。我们想忽略它并获取下一个值，因此首先我们调用 `next` 并且不对返回值做任何操作。然后，我们调用 `next` 来获取我们想要放入 `Config` 的 `query` 字段的值。如果 `next` 返回 `Some`，我们使用 `match` 提取该值。如果它返回 `None`，意味着没有提供足够的参数，我们提前返回一个 `Err` 值。我们对 `file_path` 值做同样的事情。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id="making-code-clearer-with-iterator-adapters"></a>
 
-### Clarifying Code with Iterator Adapters
+### 使用迭代器适配器使代码更清晰
 
-We can also take advantage of iterators in the `search` function in our I/O
-project, which is reproduced here in Listing 13-21 as it was in Listing 12-19.
+我们还可以利用 I/O 项目中 `search` 函数的迭代器，该函数在示例 13-21 中重现，与示例 12-19 中的相同。
 
-<Listing number="13-21" file-name="src/lib.rs" caption="The implementation of the `search` function from Listing 12-19">
+<Listing number="13-21" file-name="src/lib.rs" caption="来自示例 12-19 的 `search` 函数的实现">
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch12-an-io-project/listing-12-19/src/lib.rs:ch13}}
@@ -137,57 +94,26 @@ project, which is reproduced here in Listing 13-21 as it was in Listing 12-19.
 
 </Listing>
 
-We can write this code in a more concise way using iterator adapter methods.
-Doing so also lets us avoid having a mutable intermediate `results` vector. The
-functional programming style prefers to minimize the amount of mutable state to
-make code clearer. Removing the mutable state might enable a future enhancement
-to make searching happen in parallel because we wouldn’t have to manage
-concurrent access to the `results` vector. Listing 13-22 shows this change.
+我们可以使用迭代器适配器方法以更简洁的方式编写此代码。这样做还可以避免拥有一个可变的中间 `results` 向量。函数式编程风格倾向于最小化可变状态的数量以使代码更清晰。移除可变状态可能使未来的增强（如并行搜索）成为可能，因为我们不必管理对 `results` 向量的并发访问。示例 13-22 显示了此更改。
 
-<Listing number="13-22" file-name="src/lib.rs" caption="Using iterator adapter methods in the implementation of the `search` function">
+<Listing number="13-22" file-name="src/lib.rs" caption="在 `search` 函数的实现中使用迭代器适配器方法">
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-22/src/lib.rs:here}}
-```
-
 </Listing>
 
-Recall that the purpose of the `search` function is to return all lines in
-`contents` that contain the `query`. Similar to the `filter` example in Listing
-13-16, this code uses the `filter` adapter to keep only the lines for which
-`line.contains(query)` returns `true`. We then collect the matching lines into
-another vector with `collect`. Much simpler! Feel free to make the same change
-to use iterator methods in the `search_case_insensitive` function as well.
+回想一下，`search` 函数的目的是返回 `contents` 中包含 `query` 的所有行。与示例 13-16 中的 `filter` 示例类似，此代码使用 `filter` 适配器仅保留 `line.contains(query)` 返回 `true` 的行。然后，我们使用 `collect` 将匹配的行收集到另一个向量中。简单多了！你也可以自由地对 `search_case_insensitive` 函数进行相同的更改以使用迭代器方法。
 
-For a further improvement, return an iterator from the `search` function by
-removing the call to `collect` and changing the return type to `impl
-Iterator<Item = &'a str>` so that the function becomes an iterator adapter.
-Note that you’ll also need to update the tests! Search through a large file
-using your `minigrep` tool before and after making this change to observe the
-difference in behavior. Before this change, the program won’t print any results
-until it has collected all of the results, but after the change, the results
-will be printed as each matching line is found because the `for` loop in the
-`run` function is able to take advantage of the laziness of the iterator.
+为了进一步改进，可以通过移除对 `collect` 的调用并将返回类型更改为 `impl Iterator<Item = &'a str>` 来从 `search` 函数返回一个迭代器，这样函数就变成了一个迭代器适配器。注意，你还需要更新测试！在进行此更改前后，使用你的 `minigrep` 工具搜索大文件以观察行为差异。在此更改之前，程序在收集所有结果之前不会打印任何结果，但在更改之后，一旦找到每个匹配行，结果就会被打印出来，因为 `run` 函数中的 `for` 循环能够利用迭代器的惰性。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id="choosing-between-loops-or-iterators"></a>
 
-### Choosing Between Loops and Iterators
+### 在循环和迭代器之间选择
 
-The next logical question is which style you should choose in your own code and
-why: the original implementation in Listing 13-21 or the version using
-iterators in Listing 13-22 (assuming we’re collecting all the results before
-returning them rather than returning the iterator). Most Rust programmers
-prefer to use the iterator style. It’s a bit tougher to get the hang of at
-first, but once you get a feel for the various iterator adapters and what they
-do, iterators can be easier to understand. Instead of fiddling with the various
-bits of looping and building new vectors, the code focuses on the high-level
-objective of the loop. This abstracts away some of the commonplace code so that
-it’s easier to see the concepts that are unique to this code, such as the
-filtering condition each element in the iterator must pass.
+下一个合理的问题是在你自己的代码中应该选择哪种风格以及为什么：示例 13-21 中的原始实现还是示例 13-22 中使用迭代器的版本（假设我们在返回结果之前收集所有结果，而不是返回迭代器）。大多数 Rust 程序员更喜欢使用迭代器风格。一开始要掌握它有点困难，但是一旦你熟悉了各种迭代器适配器及其作用，迭代器就会更容易理解。代码不是摆弄循环和构建新向量的各个部分，而是专注于循环的高级目标。这抽象掉了一些常见代码，使得更容易看到此代码特有的概念，例如迭代器中每个元素必须通过的过滤条件。
 
-But are the two implementations truly equivalent? The intuitive assumption
-might be that the lower-level loop will be faster. Let’s talk about performance.
+但是这两个实现真正等价吗？直观的假设可能是较低级别的循环会更快。让我们谈谈性能。
 
 [impl-trait]: ch10-02-traits.html#traits-as-parameters

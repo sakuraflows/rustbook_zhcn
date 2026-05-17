@@ -9,9 +9,10 @@
 - 更低的二次修改门槛，更清晰的文档结构化安排（/src-en），更便于明晰中文文档与官方英文文档的版本差异。
 
 
-## 使用的大模型及提示词
-- deepseek-v4-flash  (部分长文本使用了pro)
-- 工具链：vscode+github copilot+DeepSeek V4 for Copilot Chat
+## 使用的大模型、翻译工具链及提示词
+- deepseek-v4-flash  (部分长和排版符号较多的文本使用了pro)
+- 工具链1：vscode+github copilot+DeepSeek V4 for Copilot Chat
+- 工具链2：vscode+git（可视化查看修改）+deepseek-tui（ai翻译工作流，不得不说rust构建的翻译工作流比vscode稳多了）
 
 提示词（user prompt）：
 ```
