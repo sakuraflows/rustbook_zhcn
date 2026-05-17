@@ -1,29 +1,15 @@
-# Patterns and Matching
+# 模式与匹配
 
-Patterns are a special syntax in Rust for matching against the structure of
-types, both complex and simple. Using patterns in conjunction with `match`
-expressions and other constructs gives you more control over a program’s
-control flow. A pattern consists of some combination of the following:
+模式（Patterns）是 Rust 中的一种特殊语法，用于匹配类型（无论是复杂还是简单）的结构。将模式与 `match` 表达式以及其他结构结合使用，可以让你对程序的控制流有更多的控制。模式由以下元素的某种组合构成：
 
-- Literals
-- Destructured arrays, enums, structs, or tuples
-- Variables
-- Wildcards
-- Placeholders
+- 字面量（Literals）
+- 解构的数组、枚举、结构体或元组
+- 变量（Variables）
+- 通配符（Wildcards）
+- 占位符（Placeholders）
 
-Some example patterns include `x`, `(a, 3)`, and `Some(Color::Red)`. In the
-contexts in which patterns are valid, these components describe the shape of
-data. Our program then matches values against the patterns to determine whether
-it has the correct shape of data to continue running a particular piece of code.
+一些示例模式包括 `x`、`(a, 3)` 和 `Some(Color::Red)`。在模式有效的上下文中，这些组件描述了数据的形状。然后，我们的程序将值与模式进行匹配，以确定其是否具有继续运行特定代码段所需的正确数据形状。
 
-To use a pattern, we compare it to some value. If the pattern matches the
-value, we use the value parts in our code. Recall the `match` expressions in
-Chapter 6 that used patterns, such as the coin-sorting machine example. If the
-value fits the shape of the pattern, we can use the named pieces. If it
-doesn’t, the code associated with the pattern won’t run.
+要使用模式，我们将其与某个值进行比较。如果模式匹配该值，我们就可以在代码中使用该值的各个部分。回想一下第 6 章中使用模式的 `match` 表达式，例如硬币分类机示例。如果值的形状符合模式，我们可以使用已命名的部分。如果不符合，则与模式关联的代码不会运行。
 
-This chapter is a reference on all things related to patterns. We’ll cover the
-valid places to use patterns, the difference between refutable and irrefutable
-patterns, and the different kinds of pattern syntax that you might see. By the
-end of the chapter, you’ll know how to use patterns to express many concepts in
-a clear way.
+本章是关于模式所有相关内容的参考。我们将介绍使用模式的有效位置、可反驳模式（refutable patterns）与不可反驳模式（irrefutable patterns）之间的区别，以及你可能见到的各种模式语法。到本章结束时，你将知道如何使用模式以清晰的方式表达许多概念。

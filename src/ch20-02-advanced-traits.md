@@ -1,36 +1,21 @@
-## Advanced Traits
+## 高级 Trait
 
-We first covered traits in the [“Defining Shared Behavior with
-Traits”][traits]<!-- ignore --> section in Chapter 10, but we didn’t discuss
-the more advanced details. Now that you know more about Rust, we can get into
-the nitty-gritty.
+我们第一次介绍 trait 是在第 10 章的["使用 Trait 定义共享行为"][traits]<!-- ignore -->部分，但当时我们没有讨论更高级的细节。既然你对 Rust 有了更多了解，我们可以深入探讨其细节了。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="specifying-placeholder-types-in-trait-definitions-with-associated-types"></a>
 <a id="associated-types"></a>
 
-### Defining Traits with Associated Types
+### 使用关联类型定义 Trait
 
-_Associated types_ connect a type placeholder with a trait such that the trait
-method definitions can use these placeholder types in their signatures. The
-implementor of a trait will specify the concrete type to be used instead of the
-placeholder type for the particular implementation. That way, we can define a
-trait that uses some types without needing to know exactly what those types are
-until the trait is implemented.
+*关联类型（Associated types）*将一个类型占位符与 trait 连接起来，使得 trait 方法定义可以在其签名中使用这些占位符类型。trait 的实现者将为特定实现指定要使用的具体类型，以替代占位符类型。这样，我们可以定义一个使用某些类型的 trait，而无需在 trait 被实现之前确切知道这些类型是什么。
 
-We’ve described most of the advanced features in this chapter as being rarely
-needed. Associated types are somewhere in the middle: They’re used more rarely
-than features explained in the rest of the book but more commonly than many of
-the other features discussed in this chapter.
+我们在本章中将大多数高级特性描述为很少需要用到。关联类型处于中间位置：它们的使用比本书其余部分解释的特性更少，但比本章讨论的许多其他特性更常见。
 
-One example of a trait with an associated type is the `Iterator` trait that the
-standard library provides. The associated type is named `Item` and stands in
-for the type of the values the type implementing the `Iterator` trait is
-iterating over. The definition of the `Iterator` trait is as shown in Listing
-20-13.
+一个具有关联类型的 trait 的例子是标准库提供的 `Iterator` trait。关联类型名为 `Item`，代表实现 `Iterator` trait 的类型正在迭代的值的类型。`Iterator` trait 的定义如清单 20-13 所示。
 
-<Listing number="20-13" caption="The definition of the `Iterator` trait that has an associated type `Item`">
+<Listing number="20-13" caption="具有关联类型 `Item` 的 `Iterator` trait 的定义">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-13/src/lib.rs}}
@@ -38,16 +23,9 @@ iterating over. The definition of the `Iterator` trait is as shown in Listing
 
 </Listing>
 
-The type `Item` is a placeholder, and the `next` method’s definition shows that
-it will return values of type `Option<Self::Item>`. Implementors of the
-`Iterator` trait will specify the concrete type for `Item`, and the `next`
-method will return an `Option` containing a value of that concrete type.
+类型 `Item` 是一个占位符，`next` 方法的定义表明它将返回 `Option<Self::Item>` 类型的值。`Iterator` trait 的实现者将为 `Item` 指定具体类型，并且 `next` 方法将返回一个包含该具体类型值的 `Option`。
 
-Associated types might seem like a similar concept to generics, in that the
-latter allow us to define a function without specifying what types it can
-handle. To examine the difference between the two concepts, we’ll look at an
-implementation of the `Iterator` trait on a type named `Counter` that specifies
-the `Item` type is `u32`:
+关联类型可能看起来与泛型概念相似，因为后者允许我们定义函数而不指定它可以处理什么类型。为了检查这两个概念之间的区别，我们来看一个在名为 `Counter` 的类型上实现 `Iterator` trait 的例子，该类型指定 `Item` 类型为 `u32`：
 
 <Listing file-name="src/lib.rs">
 
@@ -57,10 +35,9 @@ the `Item` type is `u32`:
 
 </Listing>
 
-This syntax seems comparable to that of generics. So, why not just define the
-`Iterator` trait with generics, as shown in Listing 20-14?
+这种语法看起来与泛型语法类似。那么，为什么不像清单 20-14 那样直接用泛型定义 `Iterator` trait 呢？
 
-<Listing number="20-14" caption="A hypothetical definition of the `Iterator` trait using generics">
+<Listing number="20-14" caption="使用泛型的假设性 `Iterator` trait 定义">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-14/src/lib.rs}}
@@ -68,50 +45,25 @@ This syntax seems comparable to that of generics. So, why not just define the
 
 </Listing>
 
-The difference is that when using generics, as in Listing 20-14, we must
-annotate the types in each implementation; because we can also implement
-`Iterator<String> for Counter` or any other type, we could have multiple
-implementations of `Iterator` for `Counter`. In other words, when a trait has a
-generic parameter, it can be implemented for a type multiple times, changing
-the concrete types of the generic type parameters each time. When we use the
-`next` method on `Counter`, we would have to provide type annotations to
-indicate which implementation of `Iterator` we want to use.
+区别在于，当使用泛型时（如清单 20-14），我们必须在每个实现中标注类型；因为我们也可以为 `Counter` 实现 `Iterator<String>` 或任何其他类型，我们可能为 `Counter` 拥有多个 `Iterator` 的实现。换句话说，当 trait 有一个泛型参数时，它可以为一个类型实现多次，每次改变泛型类型参数的具体类型。当我们在 `Counter` 上使用 `next` 方法时，我们必须提供类型标注，以指示我们想要使用哪个 `Iterator` 实现。
 
-With associated types, we don’t need to annotate types, because we can’t
-implement a trait on a type multiple times. In Listing 20-13 with the
-definition that uses associated types, we can choose what the type of `Item`
-will be only once because there can be only one `impl Iterator for Counter`. We
-don’t have to specify that we want an iterator of `u32` values everywhere we
-call `next` on `Counter`.
+使用关联类型，我们不需要标注类型，因为我们不能为一个类型多次实现一个 trait。在清单 20-13 使用关联类型的定义中，我们只能选择一次 `Item` 的类型，因为只能有一个 `impl Iterator for Counter`。我们不必在每次对 `Counter` 调用 `next` 时都指定我们想要一个 `u32` 值的迭代器。
 
-Associated types also become part of the trait’s contract: Implementors of the
-trait must provide a type to stand in for the associated type placeholder.
-Associated types often have a name that describes how the type will be used,
-and documenting the associated type in the API documentation is a good practice.
+关联类型也成为了 trait 契约的一部分：trait 的实现者必须提供一个类型来替代关联类型占位符。关联类型通常有一个描述该类型将如何被使用的名称，并且在 API 文档中记录关联类型是一个好的做法。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="default-generic-type-parameters-and-operator-overloading"></a>
 
-### Using Default Generic Parameters and Operator Overloading
+### 使用默认泛型参数和运算符重载
 
-When we use generic type parameters, we can specify a default concrete type for
-the generic type. This eliminates the need for implementors of the trait to
-specify a concrete type if the default type works. You specify a default type
-when declaring a generic type with the `<PlaceholderType=ConcreteType>` syntax.
+当我们使用泛型类型参数时，我们可以为泛型类型指定一个默认的具体类型。如果默认类型可行，这就消除了 trait 的实现者指定具体类型的需要。你可以使用 `<PlaceholderType=ConcreteType>` 语法在声明泛型类型时指定一个默认类型。
 
-A great example of a situation where this technique is useful is with _operator
-overloading_, in which you customize the behavior of an operator (such as `+`)
-in particular situations.
+一个这种技术有用的情况很好的例子是*运算符重载（operator overloading）*，其中你在特定情况下自定义运算符（例如 `+`）的行为。
 
-Rust doesn’t allow you to create your own operators or overload arbitrary
-operators. But you can overload the operations and corresponding traits listed
-in `std::ops` by implementing the traits associated with the operator. For
-example, in Listing 20-15, we overload the `+` operator to add two `Point`
-instances together. We do this by implementing the `Add` trait on a `Point`
-struct.
+Rust 不允许你创建自己的运算符或重载任意运算符。但你可以通过实现与运算符关联的 trait 来重载 `std::ops` 中列出的操作和相应的 trait。例如，在清单 20-15 中，我们重载了 `+` 运算符来将两个 `Point` 实例相加。我们通过在 `Point` 结构体上实现 `Add` trait 来实现这一点。
 
-<Listing number="20-15" file-name="src/main.rs" caption="Implementing the `Add` trait to overload the `+` operator for `Point` instances">
+<Listing number="20-15" file-name="src/main.rs" caption="实现 `Add` trait 以重载 `Point` 实例的 `+` 运算符">
 
 ```rust
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-15/src/main.rs}}
@@ -119,13 +71,9 @@ struct.
 
 </Listing>
 
-The `add` method adds the `x` values of two `Point` instances and the `y`
-values of two `Point` instances to create a new `Point`. The `Add` trait has an
-associated type named `Output` that determines the type returned from the `add`
-method.
+`add` 方法将两个 `Point` 实例的 `x` 值和两个 `Point` 实例的 `y` 值相加，创建一个新的 `Point`。`Add` trait 有一个名为 `Output` 的关联类型，它决定了从 `add` 方法返回的类型。
 
-The default generic type in this code is within the `Add` trait. Here is its
-definition:
+这段代码中的默认泛型类型在 `Add` trait 内部。以下是它的定义：
 
 ```rust
 trait Add<Rhs=Self> {
@@ -135,28 +83,13 @@ trait Add<Rhs=Self> {
 }
 ```
 
-This code should look generally familiar: a trait with one method and an
-associated type. The new part is `Rhs=Self`: This syntax is called _default
-type parameters_. The `Rhs` generic type parameter (short for “right-hand
-side”) defines the type of the `rhs` parameter in the `add` method. If we don’t
-specify a concrete type for `Rhs` when we implement the `Add` trait, the type
-of `Rhs` will default to `Self`, which will be the type we’re implementing
-`Add` on.
+这段代码看起来应该大致熟悉：一个带有一个方法和一个关联类型的 trait。新的部分是 `Rhs=Self`：这种语法被称为*默认类型参数（default type parameters）*。`Rhs` 泛型类型参数（"右操作数（right-hand side）"的缩写）定义了 `add` 方法中 `rhs` 参数的类型。如果我们在实现 `Add` trait 时没有为 `Rhs` 指定具体类型，`Rhs` 的类型将默认为 `Self`，也就是我们正在实现 `Add` 的类型。
 
-When we implemented `Add` for `Point`, we used the default for `Rhs` because we
-wanted to add two `Point` instances. Let’s look at an example of implementing
-the `Add` trait where we want to customize the `Rhs` type rather than using the
-default.
+当我们为 `Point` 实现 `Add` 时，我们使用了 `Rhs` 的默认值，因为我们想要添加两个 `Point` 实例。让我们看一个想要自定义 `Rhs` 类型而不是使用默认值的 `Add` trait 实现示例。
 
-We have two structs, `Millimeters` and `Meters`, holding values in different
-units. This thin wrapping of an existing type in another struct is known as the
-_newtype pattern_, which we describe in more detail in the [“Implementing
-External Traits with the Newtype Pattern”][newtype]<!-- ignore --> section. We
-want to add values in millimeters to values in meters and have the
-implementation of `Add` do the conversion correctly. We can implement `Add` for
-`Millimeters` with `Meters` as the `Rhs`, as shown in Listing 20-16.
+我们有两个结构体 `Millimeters` 和 `Meters`，它们持有不同单位的值。这种将现有类型薄薄地包装在另一个结构体中的方式被称为*新类型模式（newtype pattern）*，我们将在["使用新类型模式实现外部 Trait"][newtype]<!-- ignore -->部分更详细地描述。我们想将毫米（Millimeters）值加到米（Meters）值上，并且让 `Add` 的实现正确地进行转换。我们可以用 `Meters` 作为 `Rhs` 为 `Millimeters` 实现 `Add`，如清单 20-16 所示。
 
-<Listing number="20-16" file-name="src/lib.rs" caption="Implementing the `Add` trait on `Millimeters` to add `Millimeters` and `Meters`">
+<Listing number="20-16" file-name="src/lib.rs" caption="在 `Millimeters` 上实现 `Add` trait 以将 `Millimeters` 和 `Meters` 相加">
 
 ```rust,noplayground
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-16/src/lib.rs}}
@@ -164,45 +97,29 @@ implementation of `Add` do the conversion correctly. We can implement `Add` for
 
 </Listing>
 
-To add `Millimeters` and `Meters`, we specify `impl Add<Meters>` to set the
-value of the `Rhs` type parameter instead of using the default of `Self`.
+要相加 `Millimeters` 和 `Meters`，我们指定 `impl Add<Meters>` 来设置 `Rhs` 类型参数的值，而不是使用默认的 `Self`。
 
-You’ll use default type parameters in two main ways:
+你将在两种主要情况下使用默认类型参数：
 
-1. To extend a type without breaking existing code
-2. To allow customization in specific cases most users won’t need
+1. 在不破坏现有代码的情况下扩展类型
+2. 在大多数用户不需要的特定情况下允许自定义
 
-The standard library’s `Add` trait is an example of the second purpose:
-Usually, you’ll add two like types, but the `Add` trait provides the ability to
-customize beyond that. Using a default type parameter in the `Add` trait
-definition means you don’t have to specify the extra parameter most of the
-time. In other words, a bit of implementation boilerplate isn’t needed, making
-it easier to use the trait.
+标准库的 `Add` trait 是第二个目的的示例：通常，你会将两个同类类型相加，但 `Add` trait 提供了超越这一点的自定义能力。在 `Add` trait 定义中使用默认类型参数意味着大多数情况下你不需要指定额外的参数。换句话说，不需要一些实现样板，使得使用 trait 更容易。
 
-The first purpose is similar to the second but in reverse: If you want to add a
-type parameter to an existing trait, you can give it a default to allow
-extension of the functionality of the trait without breaking the existing
-implementation code.
+第一个目的与第二个类似，但是反向的：如果你想向一个现有 trait 添加类型参数，你可以给它一个默认值，从而允许扩展 trait 的功能而不破坏现有的实现代码。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="fully-qualified-syntax-for-disambiguation-calling-methods-with-the-same-name"></a>
 <a id="disambiguating-between-methods-with-the-same-name"></a>
 
-### Disambiguating Between Identically Named Methods
+### 消除同名方法之间的歧义
 
-Nothing in Rust prevents a trait from having a method with the same name as
-another trait’s method, nor does Rust prevent you from implementing both traits
-on one type. It’s also possible to implement a method directly on the type with
-the same name as methods from traits.
+在 Rust 中，没有什么能阻止一个 trait 拥有与另一个 trait 方法同名的方法，Rust 也不阻止你在同一类型上实现这两个 trait。在同一类型上直接实现一个与 trait 方法同名的方法也是可能的。
 
-When calling methods with the same name, you’ll need to tell Rust which one you
-want to use. Consider the code in Listing 20-17 where we’ve defined two traits,
-`Pilot` and `Wizard`, that both have a method called `fly`. We then implement
-both traits on a type `Human` that already has a method named `fly` implemented
-on it. Each `fly` method does something different.
+当调用同名的方法时，你需要告诉 Rust 你想要使用哪一个。考虑清单 20-17 中的代码，我们定义了两个 trait `Pilot` 和 `Wizard`，它们都有一个名为 `fly` 的方法。然后，我们在一个已经直接实现了一个名为 `fly` 的方法的 `Human` 类型上实现这两个 trait。每个 `fly` 方法做的事情都不同。
 
-<Listing number="20-17" file-name="src/main.rs" caption="Two traits are defined to have a `fly` method and are implemented on the `Human` type, and a `fly` method is implemented on `Human` directly.">
+<Listing number="20-17" file-name="src/main.rs" caption="定义了两个具有 `fly` 方法的 trait，在 `Human` 类型上实现了它们，并且在 `Human` 上直接实现了一个 `fly` 方法。">
 
 ```rust
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-17/src/main.rs:here}}
@@ -210,10 +127,9 @@ on it. Each `fly` method does something different.
 
 </Listing>
 
-When we call `fly` on an instance of `Human`, the compiler defaults to calling
-the method that is directly implemented on the type, as shown in Listing 20-18.
+当我们在 `Human` 实例上调用 `fly` 时，编译器默认会调用直接实现在该类型上的方法，如清单 20-18 所示。
 
-<Listing number="20-18" file-name="src/main.rs" caption="Calling `fly` on an instance of `Human`">
+<Listing number="20-18" file-name="src/main.rs" caption="在 `Human` 实例上调用 `fly`">
 
 ```rust
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-18/src/main.rs:here}}
@@ -221,14 +137,11 @@ the method that is directly implemented on the type, as shown in Listing 20-18.
 
 </Listing>
 
-Running this code will print `*waving arms furiously*`, showing that Rust
-called the `fly` method implemented on `Human` directly.
+运行这段代码将打印 `*waving arms furiously*`，表明 Rust 直接调用了实现在 `Human` 上的 `fly` 方法。
 
-To call the `fly` methods from either the `Pilot` trait or the `Wizard` trait,
-we need to use more explicit syntax to specify which `fly` method we mean.
-Listing 20-19 demonstrates this syntax.
+要调用 `Pilot` trait 或 `Wizard` trait 中的 `fly` 方法，我们需要使用更明确的语法来指定我们指的是哪个 `fly` 方法。清单 20-19 演示了这种语法。
 
-<Listing number="20-19" file-name="src/main.rs" caption="Specifying which trait’s `fly` method we want to call">
+<Listing number="20-19" file-name="src/main.rs" caption="指定我们想要调用哪个 trait 的 `fly` 方法">
 
 ```rust
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-19/src/main.rs:here}}
@@ -236,32 +149,19 @@ Listing 20-19 demonstrates this syntax.
 
 </Listing>
 
-Specifying the trait name before the method name clarifies to Rust which
-implementation of `fly` we want to call. We could also write
-`Human::fly(&person)`, which is equivalent to the `person.fly()` that we used
-in Listing 20-19, but this is a bit longer to write if we don’t need to
-disambiguate.
+在方法名称之前指定 trait 名称，向 Rust 阐明了我们想要调用哪个 `fly` 实现。我们也可以写成 `Human::fly(&person)`，这与我们在清单 20-19 中使用的 `person.fly()` 等效，但如果我们不需要消除歧义，这写起来会长一些。
 
-Running this code prints the following:
+运行这段代码会打印以下内容：
 
 ```console
 {{#include ../listings/ch20-advanced-features/listing-20-19/output.txt}}
 ```
 
-Because the `fly` method takes a `self` parameter, if we had two _types_ that
-both implement one _trait_, Rust could figure out which implementation of a
-trait to use based on the type of `self`.
+因为 `fly` 方法接受一个 `self` 参数，如果我们有两个实现了同一个 trait 的*类型*，Rust 可以根据 `self` 的类型确定要使用哪个 trait 实现。
 
-However, associated functions that are not methods don’t have a `self`
-parameter. When there are multiple types or traits that define non-method
-functions with the same function name, Rust doesn’t always know which type you
-mean unless you use fully qualified syntax. For example, in Listing 20-20, we
-create a trait for an animal shelter that wants to name all baby dogs Spot. We
-make an `Animal` trait with an associated non-method function `baby_name`. The
-`Animal` trait is implemented for the struct `Dog`, on which we also provide an
-associated non-method function `baby_name` directly.
+然而，不是方法的关联函数没有 `self` 参数。当有多个类型或 trait 定义具有相同函数名的非方法函数时，Rust 并不总是知道你的意思，除非你使用完全限定语法。例如，在清单 20-20 中，我们为一家动物收容所创建了一个 trait，该收容所想给所有幼犬取名为 Spot。我们创建了一个 `Animal` trait，其中包含一个关联的非方法函数 `baby_name`。`Animal` trait 为 `Dog` 结构体实现，同时我们也在 `Dog` 上直接提供了一个同名的关联非方法函数 `baby_name`。
 
-<Listing number="20-20" file-name="src/main.rs" caption="A trait with an associated function and a type with an associated function of the same name that also implements the trait">
+<Listing number="20-20" file-name="src/main.rs" caption="一个带有关联函数的 trait 和一个带有同名关联函数且也实现了该 trait 的类型">
 
 ```rust
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-20/src/main.rs}}
@@ -269,26 +169,17 @@ associated non-method function `baby_name` directly.
 
 </Listing>
 
-We implement the code for naming all puppies Spot in the `baby_name` associated
-function that is defined on `Dog`. The `Dog` type also implements the trait
-`Animal`, which describes characteristics that all animals have. Baby dogs are
-called puppies, and that is expressed in the implementation of the `Animal`
-trait on `Dog` in the `baby_name` function associated with the `Animal` trait.
+我们在定义在 `Dog` 上的 `baby_name` 关联函数中实现了给所有小狗命名为 Spot 的代码。`Dog` 类型也实现了 `Animal` trait，它描述了所有动物都具有的特征。幼犬被称为 puppy，这是在 `Dog` 上实现的 `Animal` trait 中、与 `Animal` trait 关联的 `baby_name` 函数中表达的。
 
-In `main`, we call the `Dog::baby_name` function, which calls the associated
-function defined on `Dog` directly. This code prints the following:
+在 `main` 中，我们调用了 `Dog::baby_name` 函数，它直接调用了定义在 `Dog` 上的关联函数。这段代码打印如下：
 
 ```console
 {{#include ../listings/ch20-advanced-features/listing-20-20/output.txt}}
 ```
 
-This output isn’t what we wanted. We want to call the `baby_name` function that
-is part of the `Animal` trait that we implemented on `Dog` so that the code
-prints `A baby dog is called a puppy`. The technique of specifying the trait
-name that we used in Listing 20-19 doesn’t help here; if we change `main` to
-the code in Listing 20-21, we’ll get a compilation error.
+这个输出不是我们想要的。我们想要调用作为 `Animal` trait 一部分的 `baby_name` 函数，该 trait 我们在 `Dog` 上实现了，这样代码会打印 `A baby dog is called a puppy`。我们在清单 20-19 中使用的指定 trait 名称的技术在这里没有帮助；如果我们把 `main` 改成清单 20-21 中的代码，我们会得到一个编译错误。
 
-<Listing number="20-21" file-name="src/main.rs" caption="Attempting to call the `baby_name` function from the `Animal` trait, but Rust doesn’t know which implementation to use">
+<Listing number="20-21" file-name="src/main.rs" caption="尝试从 `Animal` trait 调用 `baby_name` 函数，但 Rust 不知道要使用哪个实现">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-21/src/main.rs:here}}
@@ -296,20 +187,15 @@ the code in Listing 20-21, we’ll get a compilation error.
 
 </Listing>
 
-Because `Animal::baby_name` doesn’t have a `self` parameter, and there could be
-other types that implement the `Animal` trait, Rust can’t figure out which
-implementation of `Animal::baby_name` we want. We’ll get this compiler error:
+因为 `Animal::baby_name` 没有 `self` 参数，并且可能还有其他类型实现了 `Animal` trait，Rust 无法确定我们想要哪个 `Animal::baby_name` 实现。我们将会得到这个编译器错误：
 
 ```console
 {{#include ../listings/ch20-advanced-features/listing-20-21/output.txt}}
 ```
 
-To disambiguate and tell Rust that we want to use the implementation of
-`Animal` for `Dog` as opposed to the implementation of `Animal` for some other
-type, we need to use fully qualified syntax. Listing 20-22 demonstrates how to
-use fully qualified syntax.
+为了消除歧义并告诉 Rust 我们想要使用 `Animal` 对 `Dog` 的实现，而不是 `Animal` 对其他类型的实现，我们需要使用完全限定语法。清单 20-22 演示了如何使用完全限定语法。
 
-<Listing number="20-22" file-name="src/main.rs" caption="Using fully qualified syntax to specify that we want to call the `baby_name` function from the `Animal` trait as implemented on `Dog`">
+<Listing number="20-22" file-name="src/main.rs" caption="使用完全限定语法指定我们要调用 `Animal` trait 的 `baby_name` 函数在 `Dog` 上的实现">
 
 ```rust
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-22/src/main.rs:here}}
@@ -317,47 +203,29 @@ use fully qualified syntax.
 
 </Listing>
 
-We’re providing Rust with a type annotation within the angle brackets, which
-indicates we want to call the `baby_name` method from the `Animal` trait as
-implemented on `Dog` by saying that we want to treat the `Dog` type as an
-`Animal` for this function call. This code will now print what we want:
+我们在尖括号内为 Rust 提供了一个类型标注，通过说我们想将 `Dog` 类型在此函数调用中视为 `Animal`，来指示我们想要调用 `Animal` trait 在 `Dog` 上实现的 `baby_name` 方法。这段代码现在将打印我们想要的内容：
 
 ```console
 {{#include ../listings/ch20-advanced-features/listing-20-22/output.txt}}
 ```
 
-In general, fully qualified syntax is defined as follows:
+通常来说，完全限定语法定义如下：
 
 ```rust,ignore
 <Type as Trait>::function(receiver_if_method, next_arg, ...);
 ```
 
-For associated functions that aren’t methods, there would not be a `receiver`:
-There would only be the list of other arguments. You could use fully qualified
-syntax everywhere that you call functions or methods. However, you’re allowed
-to omit any part of this syntax that Rust can figure out from other information
-in the program. You only need to use this more verbose syntax in cases where
-there are multiple implementations that use the same name and Rust needs help
-to identify which implementation you want to call.
+对于不是方法的关联函数，不会有 `receiver`：只有其他参数的列表。你可以在任何调用函数或方法的地方使用完全限定语法。然而，对于 Rust 可以从程序中的其他信息确定的部分，你可以省略此语法。你只需要在存在多个使用相同名称的实现，并且 Rust 需要帮助才能识别你想要的实现的情况下使用这种更冗长的语法。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="using-supertraits-to-require-one-traits-functionality-within-another-trait"></a>
 
-### Using Supertraits
+### 使用超 Trait
 
-Sometimes you might write a trait definition that depends on another trait: For
-a type to implement the first trait, you want to require that type to also
-implement the second trait. You would do this so that your trait definition can
-make use of the associated items of the second trait. The trait your trait
-definition is relying on is called a _supertrait_ of your trait.
+有时你可能会编写一个依赖于另一个 trait 的 trait 定义：要一个类型实现第一个 trait，你想要求该类型也必须实现第二个 trait。你这样做是为了让你的 trait 定义能够使用第二个 trait 的关联项。你的 trait 定义所依赖的 trait 被称为你的 trait 的*超 trait（supertrait）*。
 
-For example, let’s say we want to make an `OutlinePrint` trait with an
-`outline_print` method that will print a given value formatted so that it’s
-framed in asterisks. That is, given a `Point` struct that implements the
-standard library trait `Display` to result in `(x, y)`, when we call
-`outline_print` on a `Point` instance that has `1` for `x` and `3` for `y`, it
-should print the following:
+例如，假设我们想要创建一个 `OutlinePrint` trait，它有一个 `outline_print` 方法，将给定值格式化为带星号边框的形式打印出来。也就是说，给定一个实现了标准库 `Display` trait 的 `Point` 结构体，其结果格式为 `(x, y)`，当我们在一个 `x` 为 `1`、`y` 为 `3` 的 `Point` 实例上调用 `outline_print` 时，它应该打印如下：
 
 ```text
 **********
@@ -367,15 +235,9 @@ should print the following:
 **********
 ```
 
-In the implementation of the `outline_print` method, we want to use the
-`Display` trait’s functionality. Therefore, we need to specify that the
-`OutlinePrint` trait will work only for types that also implement `Display` and
-provide the functionality that `OutlinePrint` needs. We can do that in the
-trait definition by specifying `OutlinePrint: Display`. This technique is
-similar to adding a trait bound to the trait. Listing 20-23 shows an
-implementation of the `OutlinePrint` trait.
+在 `outline_print` 方法的实现中，我们想要使用 `Display` trait 的功能。因此，我们需要指定 `OutlinePrint` trait 只对也实现了 `Display` 并提供 `OutlinePrint` 所需功能的类型起作用。我们可以在 trait 定义中通过指定 `OutlinePrint: Display` 来实现这一点。这种技术类似于向 trait 添加一个 trait 约束。清单 20-23 展示了 `OutlinePrint` trait 的实现。
 
-<Listing number="20-23" file-name="src/main.rs" caption="Implementing the `OutlinePrint` trait that requires the functionality from `Display`">
+<Listing number="20-23" file-name="src/main.rs" caption="实现需要 `Display` 功能的 `OutlinePrint` trait">
 
 ```rust
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-23/src/main.rs:here}}
@@ -383,15 +245,9 @@ implementation of the `OutlinePrint` trait.
 
 </Listing>
 
-Because we’ve specified that `OutlinePrint` requires the `Display` trait, we
-can use the `to_string` function that is automatically implemented for any type
-that implements `Display`. If we tried to use `to_string` without adding a
-colon and specifying the `Display` trait after the trait name, we’d get an
-error saying that no method named `to_string` was found for the type `&Self` in
-the current scope.
+因为我们指定了 `OutlinePrint` 需要 `Display` trait，我们可以使用 `to_string` 函数，该函数会自动为任何实现了 `Display` 的类型实现。如果我们试图使用 `to_string` 而没有在 trait 名称后面添加冒号和指定 `Display` trait，我们会得到一个错误，指出在当前作用域中未找到类型 `&Self` 的名为 `to_string` 的方法。
 
-Let’s see what happens when we try to implement `OutlinePrint` on a type that
-doesn’t implement `Display`, such as the `Point` struct:
+让我们看看当我们尝试在不实现 `Display` 的类型（例如 `Point` 结构体）上实现 `OutlinePrint` 时会发生什么：
 
 <Listing file-name="src/main.rs">
 
@@ -401,14 +257,13 @@ doesn’t implement `Display`, such as the `Point` struct:
 
 </Listing>
 
-We get an error saying that `Display` is required but not implemented:
+我们得到一个错误，说需要 `Display` 但没有实现：
 
 ```console
 {{#include ../listings/ch20-advanced-features/no-listing-02-impl-outlineprint-for-point/output.txt}}
 ```
 
-To fix this, we implement `Display` on `Point` and satisfy the constraint that
-`OutlinePrint` requires, like so:
+要修复这个问题，我们在 `Point` 上实现 `Display` 并满足 `OutlinePrint` 所需的条件，如下所示：
 
 <Listing file-name="src/main.rs">
 
@@ -418,37 +273,20 @@ To fix this, we implement `Display` on `Point` and satisfy the constraint that
 
 </Listing>
 
-Then, implementing the `OutlinePrint` trait on `Point` will compile
-successfully, and we can call `outline_print` on a `Point` instance to display
-it within an outline of asterisks.
+然后，在 `Point` 上实现 `OutlinePrint` trait 将成功编译，我们可以在 `Point` 实例上调用 `outline_print` 来在星号边框内显示它。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="using-the-newtype-pattern-to-implement-external-traits-on-external-types"></a>
 <a id="using-the-newtype-pattern-to-implement-external-traits"></a>
 
-### Implementing External Traits with the Newtype Pattern
+### 使用新类型模式实现外部 Trait
 
-In the [“Implementing a Trait on a Type”][implementing-a-trait-on-a-type]<!--
-ignore --> section in Chapter 10, we mentioned the orphan rule that states
-we’re only allowed to implement a trait on a type if either the trait or the
-type, or both, are local to our crate. It’s possible to get around this
-restriction using the newtype pattern, which involves creating a new type in a
-tuple struct. (We covered tuple structs in the [“Creating Different Types with
-Tuple Structs”][tuple-structs]<!-- ignore --> section in Chapter 5.) The tuple
-struct will have one field and be a thin wrapper around the type for which we
-want to implement a trait. Then, the wrapper type is local to our crate, and we
-can implement the trait on the wrapper. _Newtype_ is a term that originates
-from the Haskell programming language. There is no runtime performance penalty
-for using this pattern, and the wrapper type is elided at compile time.
+在第 10 章的["在类型上实现 Trait"][implementing-a-trait-on-a-type]<!-- ignore -->部分，我们提到了孤儿规则（orphan rule），该规则规定我们只有在 trait 或类型（或两者）位于我们自己的 crate 中时，才能在该类型上实现该 trait。可以使用新类型模式绕过这一限制，这涉及在元组结构体中创建一个新类型。（我们在第 5 章的["使用元组结构体创建不同类型"][tuple-structs]<!-- ignore -->部分介绍了元组结构体。）元组结构体将有一个字段，并成为我们希望在其上实现 trait 的类型的薄包装。然后，包装类型位于我们的 crate 中，我们可以在包装器上实现 trait。*新类型（Newtype）*是一个源自 Haskell 编程语言的术语。使用这种模式没有运行时性能损失，并且包装类型在编译时会被优化掉。
 
-As an example, let’s say we want to implement `Display` on `Vec<T>`, which the
-orphan rule prevents us from doing directly because the `Display` trait and the
-`Vec<T>` type are defined outside our crate. We can make a `Wrapper` struct
-that holds an instance of `Vec<T>`; then, we can implement `Display` on
-`Wrapper` and use the `Vec<T>` value, as shown in Listing 20-24.
+例如，假设我们想在 `Vec<T>` 上实现 `Display`，孤儿规则阻止我们直接这样做，因为 `Display` trait 和 `Vec<T>` 类型都定义在我们的 crate 之外。我们可以创建一个持有 `Vec<T>` 实例的 `Wrapper` 结构体；然后，我们可以在 `Wrapper` 上实现 `Display` 并使用 `Vec<T>` 值，如清单 20-24 所示。
 
-<Listing number="20-24" file-name="src/main.rs" caption="Creating a `Wrapper` type around `Vec<String>` to implement `Display`">
+<Listing number="20-24" file-name="src/main.rs" caption="创建一个包装 `Vec<String>` 的 `Wrapper` 类型以实现 `Display`">
 
 ```rust
 {{#rustdoc_include ../listings/ch20-advanced-features/listing-20-24/src/main.rs}}
@@ -456,24 +294,11 @@ that holds an instance of `Vec<T>`; then, we can implement `Display` on
 
 </Listing>
 
-The implementation of `Display` uses `self.0` to access the inner `Vec<T>`
-because `Wrapper` is a tuple struct and `Vec<T>` is the item at index 0 in the
-tuple. Then, we can use the functionality of the `Display` trait on `Wrapper`.
+`Display` 的实现使用 `self.0` 来访问内部的 `Vec<T>`，因为 `Wrapper` 是一个元组结构体，而 `Vec<T>` 是元组中索引为 0 的元素。然后，我们可以在 `Wrapper` 上使用 `Display` trait 的功能。
 
-The downside of using this technique is that `Wrapper` is a new type, so it
-doesn’t have the methods of the value it’s holding. We would have to implement
-all the methods of `Vec<T>` directly on `Wrapper` such that the methods
-delegate to `self.0`, which would allow us to treat `Wrapper` exactly like a
-`Vec<T>`. If we wanted the new type to have every method the inner type has,
-implementing the `Deref` trait on the `Wrapper` to return the inner type would
-be a solution (we discussed implementing the `Deref` trait in the [“Treating
-Smart Pointers Like Regular References”][smart-pointer-deref]<!-- ignore -->
-section in Chapter 15). If we didn’t want the `Wrapper` type to have all the
-methods of the inner type—for example, to restrict the `Wrapper` type’s
-behavior—we would have to implement just the methods we do want manually.
+使用这种技术的缺点是 `Wrapper` 是一个新类型，因此它没有所持有的值的方法。我们必须直接在 `Wrapper` 上实现 `Vec<T>` 的所有方法，以便这些方法委托给 `self.0`，这将允许我们将 `Wrapper` 完全当作 `Vec<T>` 来对待。如果我们希望新类型具有内部类型的每一个方法，在 `Wrapper` 上实现 `Deref` trait 以返回内部类型是一个解决方案（我们在第 15 章的["将智能指针视为常规引用"][smart-pointer-deref]<!-- ignore -->部分讨论了实现 `Deref` trait）。如果我们不希望 `Wrapper` 类型拥有内部类型的所有方法——例如，为了限制 `Wrapper` 类型的行为——我们就必须手动实现我们想要的那些方法。
 
-This newtype pattern is also useful even when traits are not involved. Let’s
-switch focus and look at some advanced ways to interact with Rust’s type system.
+这种新类型模式即使在涉及 trait 时也很有用。让我们切换焦点，来看看与 Rust 的类型系统交互的一些高级方式。
 
 [newtype]: ch20-02-advanced-traits.html#implementing-external-traits-with-the-newtype-pattern
 [implementing-a-trait-on-a-type]: ch10-02-traits.html#implementing-a-trait-on-a-type

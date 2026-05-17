@@ -1,84 +1,26 @@
-## Futures and the Async Syntax
+## Future 与 Async 语法
 
-The key elements of asynchronous programming in Rust are _futures_ and Rust’s
-`async` and `await` keywords.
+Rust 中异步编程的关键元素是 *future* 以及 Rust 的 `async` 和 `await` 关键字。
 
-A _future_ is a value that may not be ready now but will become ready at some
-point in the future. (This same concept shows up in many languages, sometimes
-under other names such as _task_ or _promise_.) Rust provides a `Future` trait
-as a building block so that different async operations can be implemented with
-different data structures but with a common interface. In Rust, futures are
-types that implement the `Future` trait. Each future holds its own information
-about the progress that has been made and what “ready” means.
+一个 *future* 是一个现在可能尚未就绪，但在将来某个时刻会变为就绪的值。（同样的概念出现在许多语言中，有时以其他名称出现，如 *task* 或 *promise*。）Rust 提供了 `Future` trait 作为构建块，以便不同的异步操作可以用不同的数据结构实现，但共享一个公共接口。在 Rust 中，future 是实现 `Future` trait 的类型。每个 future 都持有自己的关于已取得进展以及"就绪"意味着什么的信息。
 
-You can apply the `async` keyword to blocks and functions to specify that they
-can be interrupted and resumed. Within an async block or async function, you
-can use the `await` keyword to _await a future_ (that is, wait for it to become
-ready). Any point where you await a future within an async block or function is
-a potential spot for that block or function to pause and resume. The process of
-checking with a future to see if its value is available yet is called _polling_.
+你可以将 `async` 关键字应用于代码块和函数，以指定它们可以被中断和恢复。在一个 async 代码块或 async 函数内部，你可以使用 `await` 关键字来*等待（await）一个 future*（即，等待它变为就绪）。你在 async 代码块或函数中等待 future 的任何位置，都是该代码块或函数可能暂停和恢复的潜在位置。检查一个 future 以查看其值是否可用的过程称为*轮询（polling）*。
 
-Some other languages, such as C# and JavaScript, also use `async` and `await`
-keywords for async programming. If you’re familiar with those languages, you
-may notice some significant differences in how Rust handles the syntax. That’s
-for good reason, as we’ll see!
+其他一些语言（如 C# 和 JavaScript）也使用 `async` 和 `await` 关键字进行异步编程。如果你熟悉这些语言，你可能会注意到 Rust 在处理这些语法方面有一些显著的不同。这是有充分理由的，我们稍后就会看到！
 
-When writing async Rust, we use the `async` and `await` keywords most of the
-time. Rust compiles them into equivalent code using the `Future` trait, much as
-it compiles `for` loops into equivalent code using the `Iterator` trait.
-Because Rust provides the `Future` trait, though, you can also implement it for
-your own data types when you need to. Many of the functions we’ll see
-throughout this chapter return types with their own implementations of
-`Future`. We’ll return to the definition of the trait at the end of the chapter
-and dig into more of how it works, but this is enough detail to keep us moving
-forward.
+在编写异步 Rust 代码时，我们大多数时候都使用 `async` 和 `await` 关键字。Rust 将它们编译为使用 `Future` trait 的等效代码，就像它将 `for` 循环编译为使用 `Iterator` trait 的等效代码一样。不过，由于 Rust 提供了 `Future` trait，你也可以在需要时为自定义数据类型实现它。我们在本章中会看到的许多函数，返回的类型都带有它们自己对 `Future` 的实现。我们将在本章末尾回到该 trait 的定义，深入探讨其工作原理，但这些细节已经足够我们继续前进了。
 
-This may all feel a bit abstract, so let’s write our first async program: a
-little web scraper. We’ll pass in two URLs from the command line, fetch both of
-them concurrently, and return the result of whichever one finishes first. This
-example will have a fair bit of new syntax, but don’t worry—we’ll explain
-everything you need to know as we go.
+这一切可能感觉有点抽象，所以让我们来编写第一个异步程序：一个小型网页抓取器。我们将从命令行传入两个 URL，并发地获取它们，并返回最先完成那个的结果。这个例子会有不少新语法，但不用担心——我们会一路解释你所需了解的一切。
 
-## Our First Async Program
+## 我们的第一个异步程序
 
-To keep the focus of this chapter on learning async rather than juggling parts
-of the ecosystem, we’ve created the `trpl` crate (`trpl` is short for “The Rust
-Programming Language”). It re-exports all the types, traits, and functions
-you’ll need, primarily from the [`futures`][futures-crate]<!-- ignore --> and
-[`tokio`][tokio]<!-- ignore --> crates. The `futures` crate is an official home
-for Rust experimentation for async code, and it’s actually where the `Future`
-trait was originally designed. Tokio is the most widely used async runtime in
-Rust today, especially for web applications. There are other great runtimes out
-there, and they may be more suitable for your purposes. We use the `tokio`
-crate under the hood for `trpl` because it’s well tested and widely used.
+为了让本章聚焦于学习 async 而非在生态系统的各个部分之间周旋，我们创建了 `trpl` crate（`trpl` 是"The Rust Programming Language"的缩写）。它重新导出了你需要的所有类型、trait 和函数，主要来自 [`futures`][futures-crate]<!-- ignore --> 和 [`tokio`][tokio]<!-- ignore --> crate。`futures` crate 是 Rust 异步代码实验的官方家园，实际上 `Future` trait 最初就是在此处设计的。Tokio 是当今 Rust 中使用最广泛的异步运行时，尤其适用于 Web 应用。还有其他优秀的运行时存在，它们可能更适合你的目的。我们在 `trpl` 底层使用了 `tokio` crate，因为它经过了充分测试且广泛使用。
 
-In some cases, `trpl` also renames or wraps the original APIs to keep you
-focused on the details relevant to this chapter. If you want to understand what
-the crate does, we encourage you to check out [its source code][crate-source].
-You’ll be able to see what crate each re-export comes from, and we’ve left
-extensive comments explaining what the crate does.
+在某些情况下，`trpl` 还会重命名或包装原始 API，以让你专注于与本章相关的细节。如果你想了解该 crate 的实际工作，我们鼓励你查看[其源代码][crate-source]<!-- ignore -->。你将能够看到它调用了哪个 crate 以及重新导出了什么。
 
-Create a new binary project named `hello-async` and add the `trpl` crate as a
-dependency:
+创建一个小型命令行工具，读取两个 URL，并发获取两者，并返回最先完成那个的名称，向我们展示了很多关键部分。在之前的章节中，我们采用自底向上的方式，先讲授细节再将其组合成一个综合示例，但在这里，我们将以相反的方式进行。我们将先编写一个函数，然后逐步处理过程中遇到的编译器错误，直到一切就绪。我们从示例 17-1 中显示的函数开始。
 
-```console
-$ cargo new hello-async
-$ cd hello-async
-$ cargo add trpl
-```
-
-Now we can use the various pieces provided by `trpl` to write our first async
-program. We’ll build a little command line tool that fetches two web pages,
-pulls the `<title>` element from each, and prints out the title of whichever
-page finishes that whole process first.
-
-### Defining the page_title Function
-
-Let’s start by writing a function that takes one page URL as a parameter, makes
-a request to it, and returns the text of the `<title>` element (see Listing
-17-1).
-
-<Listing number="17-1" file-name="src/main.rs" caption="Defining an async function to get the title element from an HTML page">
+<Listing number="17-1" file-name="src/main.rs" caption="定义一个 async 函数，从一个 URL 获取页面标题">
 
 ```rust
 {{#rustdoc_include ../listings/ch17-async-await/listing-17-01/src/main.rs:all}}
@@ -86,55 +28,13 @@ a request to it, and returns the text of the `<title>` element (see Listing
 
 </Listing>
 
-First, we define a function named `page_title` and mark it with the `async`
-keyword. Then we use the `trpl::get` function to fetch whatever URL is passed
-in and add the `await` keyword to await the response. To get the text of the
-`response`, we call its `text` method and once again await it with the `await`
-keyword. Both of these steps are asynchronous. For the `get` function, we have
-to wait for the server to send back the first part of its response, which will
-include HTTP headers, cookies, and so on and can be delivered separately from
-the response body. Especially if the body is very large, it can take some time
-for it all to arrive. Because we have to wait for the _entirety_ of the
-response to arrive, the `text` method is also async.
+在示例 17-1 中，我们定义了一个名为 `page_title` 的函数，并将其标记为 `async`。然后我们使用 `trpl::get` 来获取传入的任何 URL，并使用 `await` 关键字来等待（await）响应。然后我们调用 `text` 获取响应的文本内容，并再次使用 `await` 关键字来等待它。这两步都是异步的。对于 `get`，我们需要等待服务器发送其响应的第一部分，其中包括标头（headers）、连接信息等，并且在完整响应通过线路传输时，主体数据的一部分可能已经到达。即使整个响应已经到达，之后的 `text` 也需要等待整个响应主体作为一个 `String` 返回。我们必须显式等待这两个 future，因为 Rust 中的 future 是*惰性（lazy）*的：在你等待它们之前，它们不会做任何事情。（实际上，如果你使用一个 future 而不等待它，Rust 会发出一个编译器警告。）
 
-We have to explicitly await both of these futures, because futures in Rust are
-_lazy_: they don’t do anything until you ask them to with the `await` keyword.
-(In fact, Rust will show a compiler warning if you don’t use a future.) This
-might remind you of the discussion of iterators in the [“Processing a Series of
-Items with Iterators”][iterators-lazy]<!-- ignore --> section in Chapter 13.
-Iterators do nothing unless you call their `next` method—whether directly or by
-using `for` loops or methods such as `map` that use `next` under the hood.
-Likewise, futures do nothing unless you explicitly ask them to. This laziness
-allows Rust to avoid running async code until it’s actually needed.
+当我们等待完对 `text` 的调用后，我们有了一个 `String`。我们用 `Html::parse` 将其包装为一个 `Html` 类型。我们没有定义原始字符串作为 `Html` 的解析，而是使用 `trpl` crate 将 `scraper` crate 的 `Html` 类型重新导出为 `trpl::Html`。然后我们使用 `select_first` 方法查找第一个匹配指定 CSS 选择器的元素。我们传入字符串 `"title"`，并得到一个 `Option`，包含一个表示匹配到元素的项（如果有匹配的话）。然后我们调用 `inner_html` 方法获取该元素的内容，它是一个 `String`。最终，我们得到一个 `Option<String>`。
 
-> Note: This is different from the behavior we saw when using `thread::spawn`
-> in the [“Creating a New Thread with spawn”][thread-spawn]<!-- ignore -->
-> section in Chapter 16, where the closure we passed to another thread started
-> running immediately. It’s also different from how many other languages
-> approach async. But it’s important for Rust to be able to provide its
-> performance guarantees, just as it is with iterators.
+请注意，Rust 的 `await` 关键字位于你要等待的表达式*之后*，而不是之前。也就是说，它是一个*后置（postfix）*关键字。这可能与你在其他语言中使用 `async` 的习惯不同，但在 Rust 中，这使得方法链的编写更加顺畅。因此，我们可以将 `page_title` 的函数体修改为将 `trpl::get` 和 `text` 函数调用串联在一起，并在它们之间使用 `await`，如示例 17-2 所示。
 
-Once we have `response_text`, we can parse it into an instance of the `Html`
-type using `Html::parse`. Instead of a raw string, we now have a data type we
-can use to work with the HTML as a richer data structure. In particular, we can
-use the `select_first` method to find the first instance of a given CSS
-selector. By passing the string `"title"`, we’ll get the first `<title>`
-element in the document, if there is one. Because there may not be any matching
-element, `select_first` returns an `Option<ElementRef>`. Finally, we use the
-`Option::map` method, which lets us work with the item in the `Option` if it’s
-present, and do nothing if it isn’t. (We could also use a `match` expression
-here, but `map` is more idiomatic.) In the body of the function we supply to
-`map`, we call `inner_html` on the `title` to get its content, which is a
-`String`. When all is said and done, we have an `Option<String>`.
-
-Notice that Rust’s `await` keyword goes _after_ the expression you’re awaiting,
-not before it. That is, it’s a _postfix_ keyword. This may differ from what
-you’re used to if you’ve used `async` in other languages, but in Rust it makes
-chains of methods much nicer to work with. As a result, we could change the
-body of `page_title` to chain the `trpl::get` and `text` function calls
-together with `await` between them, as shown in Listing 17-2.
-
-<Listing number="17-2" file-name="src/main.rs" caption="Chaining with the `await` keyword">
+<Listing number="17-2" file-name="src/main.rs" caption="使用 `await` 关键字进行链式调用">
 
 ```rust
 {{#rustdoc_include ../listings/ch17-async-await/listing-17-02/src/main.rs:chaining}}
@@ -142,20 +42,11 @@ together with `await` between them, as shown in Listing 17-2.
 
 </Listing>
 
-With that, we have successfully written our first async function! Before we add
-some code in `main` to call it, let’s talk a little more about what we’ve
-written and what it means.
+至此，我们已成功编写了第一个异步函数！在 `main` 中添加调用它的代码之前，让我们再多谈一些关于我们所写内容及其含义。
 
-When Rust sees a _block_ marked with the `async` keyword, it compiles it into a
-unique, anonymous data type that implements the `Future` trait. When Rust sees
-a _function_ marked with `async`, it compiles it into a non-async function
-whose body is an async block. An async function’s return type is the type of
-the anonymous data type the compiler creates for that async block.
+当 Rust 看到一个标记有 `async` 关键字的*代码块*时，它将其编译为一个实现了 `Future` trait 的唯一的匿名数据类型。当 Rust 看到一个标记有 `async` 的*函数*时，它将编译为一个非异步函数，其函数体是一个 async 代码块。异步函数的返回类型是编译器为该 async 代码块创建的匿名数据类型的类型。
 
-Thus, writing `async fn` is equivalent to writing a function that returns a
-_future_ of the return type. To the compiler, a function definition such as the
-`async fn page_title` in Listing 17-1 is roughly equivalent to a non-async
-function defined like this:
+因此，编写 `async fn` 等同于编写一个返回该返回类型的 *future* 的函数。对编译器来说，像示例 17-1 中的 `async fn page_title` 这样的函数定义大致等同于如下定义的非异步函数：
 
 ```rust
 # extern crate trpl; // required for mdbook test
@@ -172,35 +63,25 @@ fn page_title(url: &str) -> impl Future<Output = Option<String>> {
 }
 ```
 
-Let’s walk through each part of the transformed version:
+让我们逐一分析转换后版本的各个部分：
 
-- It uses the `impl Trait` syntax we discussed back in Chapter 10 in the
-  [“Traits as Parameters”][impl-trait]<!-- ignore --> section.
-- The returned value implements the `Future` trait with an associated type of
-  `Output`. Notice that the `Output` type is `Option<String>`, which is the
-  same as the original return type from the `async fn` version of `page_title`.
-- All of the code called in the body of the original function is wrapped in
-  an `async move` block. Remember that blocks are expressions. This whole block
-  is the expression returned from the function.
-- This async block produces a value with the type `Option<String>`, as just
-  described. That value matches the `Output` type in the return type. This is
-  just like other blocks you have seen.
-- The new function body is an `async move` block because of how it uses the
-  `url` parameter. (We’ll talk much more about `async` versus `async move`
-  later in the chapter.)
+- 它使用了我们在第 10 章"[将 Trait 作为参数][impl-trait]<!-- ignore -->"一节中讨论过的 `impl Trait` 语法。
+- 返回值实现了 `Future` trait，其关联类型为 `Output`。请注意，`Output` 类型是 `Option<String>`，这与 `async fn` 版本中 `page_title` 的原始返回类型相同。
+- 原始函数体中调用的所有代码都被包裹在一个 `async move` 代码块中。请记住，代码块也是表达式。整个代码块就是从函数返回的表达式。
+- 这个 async 代码块产生一个类型为 `Option<String>` 的值，如上所述。该值与返回类型中的 `Output` 类型匹配。这与你之前见过的其他代码块一样。
+- 新的函数体是一个 `async move` 代码块，这是因为它使用了 `url` 参数。（我们将在本章后面更多地讨论 `async` 与 `async move` 的区别。）
 
-Now we can call `page_title` in `main`.
+现在我们可以从 `main` 中调用 `page_title` 了。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id ="determining-a-single-pages-title"></a>
 
-### Executing an Async Function with a Runtime
+### 使用运行时执行异步函数
 
-To start, we’ll get the title for a single page, shown in Listing 17-3.
-Unfortunately, this code doesn’t compile yet.
+首先，我们将获取单个页面的标题，如示例 17-3 所示。不幸的是，这段代码目前还无法编译。
 
-<Listing number="17-3" file-name="src/main.rs" caption="Calling the `page_title` function from `main` with a user-supplied argument">
+<Listing number="17-3" file-name="src/main.rs" caption="从 `main` 中使用用户提供的参数调用 `page_title` 函数">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch17-async-await/listing-17-03/src/main.rs:main}}
@@ -208,15 +89,9 @@ Unfortunately, this code doesn’t compile yet.
 
 </Listing>
 
-We follow the same pattern we used to get command line arguments in the
-[“Accepting Command Line Arguments”][cli-args]<!-- ignore --> section in
-Chapter 12. Then we pass the URL argument to `page_title` and await the result.
-Because the value produced by the future is an `Option<String>`, we use a
-`match` expression to print different messages to account for whether the page
-had a `<title>`.
+我们遵循与第 12 章中[接受命令行参数][cli-args]<!-- ignore -->小节相同的模式来获取命令行参数。然后我们将 URL 参数传递给 `page_title`，并等待结果。因为 future 产生的值是一个 `Option<String>`，所以我们使用 `match` 表达式来打印不同的消息，以反映页面是否包含 `<title>`。
 
-The only place we can use the `await` keyword is in async functions or blocks,
-and Rust won’t let us mark the special `main` function as `async`.
+我们只能在使用 `await` 关键字的 async 函数或代码块中使用它，而 Rust 不允许我们将特殊的 `main` 函数标记为 `async`。
 
 <!-- manual-regeneration
 cd listings/ch17-async-await/listing-17-03
@@ -232,37 +107,15 @@ error[E0752]: `main` function is not allowed to be `async`
   | ^^^^^^^^^^^^^^^ `main` function is not allowed to be `async`
 ```
 
-The reason `main` can’t be marked `async` is that async code needs a _runtime_:
-a Rust crate that manages the details of executing asynchronous code. A
-program’s `main` function can _initialize_ a runtime, but it’s not a runtime
-_itself_. (We’ll see more about why this is the case in a bit.) Every Rust
-program that executes async code has at least one place where it sets up a
-runtime that executes the futures.
+`main` 不能标记为 `async` 的原因是，异步代码需要一个*运行时（runtime）*：一个管理所有异步代码执行细节的 Rust crate。程序的 `main` 函数可以*初始化*一个运行时，但它本身*不是*一个运行时。（稍后我们将更详细地介绍这是为什么。）每个执行异步代码的 Rust 程序至少有一个位置设置了执行 future 的运行时。
 
-Most languages that support async bundle a runtime, but Rust does not. Instead,
-there are many different async runtimes available, each of which makes different
-tradeoffs suitable to the use case it targets. For example, a high-throughput
-web server with many CPU cores and a large amount of RAM has very different
-needs than a microcontroller with a single core, a small amount of RAM, and no
-heap allocation ability. The crates that provide those runtimes also often
-supply async versions of common functionality such as file or network I/O.
+大多数支持 async 的语言都捆绑了一个运行时，但 Rust 没有。相反，有许多不同的异步运行时可用，每个都在其目标用例适用的权衡之间做出不同的选择。例如，一个具有多个 CPU 核心和大量 RAM 的高吞吐量 Web 服务器，与一个单核、少量 RAM 且没有堆分配能力的微控制器，有非常不同的需求。提供这些运行时的 crate 也常常提供常用功能（如文件或网络 I/O）的异步版本。
 
-Here, and throughout the rest of this chapter, we’ll use the `block_on`
-function from the `trpl` crate, which takes a future as an argument and blocks
-the current thread until this future runs to completion. Behind the scenes,
-calling `block_on` sets up a runtime using the `tokio` crate that’s used to run
-the future passed in (the `trpl` crate’s `block_on` behavior is similar to
-other runtime crates’ `block_on` functions). Once the future completes,
-`block_on` returns whatever value the future produced.
+在这里以及本章的其余部分，我们将使用 `trpl` crate 中的 `block_on` 函数，它接受一个 future 作为参数，并阻塞当前线程直到该 future 运行完毕。在幕后，调用 `block_on` 会使用 `tokio` crate 设置一个运行时，用于运行传入的 future（`trpl` crate 的 `block_on` 行为类似于其他运行时 crate 的 `block_on` 函数）。一旦 future 完成，`block_on` 返回该 future 产生的任何值。
 
-We could pass the future returned by `page_title` directly to `block_on` and,
-once it completed, we could match on the resulting `Option<String>` as we tried
-to do in Listing 17-3. However, for most of the examples in the chapter (and
-most async code in the real world), we’ll be doing more than just one async
-function call, so instead we’ll pass an `async` block and explicitly await the
-result of the `page_title` call, as in Listing 17-4.
+我们可以将 `page_title` 返回的 future 直接传递给 `block_on`，一旦完成，我们可以像在示例 17-3 中尝试做的那样，对结果 `Option<String>` 进行 `match`。然而，对于本章的大多数示例（以及现实世界中的大多数异步代码），我们要做的不仅仅是调用一个异步函数，所以我们将传入一个 `async` 代码块，并显式地等待 `page_title` 调用的结果，如示例 17-4 所示。
 
-<Listing number="17-4" caption="Awaiting an async block with `trpl::block_on`" file-name="src/main.rs">
+<Listing number="17-4" caption="使用 `trpl::block_on` 等待一个 async 代码块" file-name="src/main.rs">
 
 <!-- should_panic,noplayground because mdbook test does not pass args -->
 
@@ -272,7 +125,7 @@ result of the `page_title` call, as in Listing 17-4.
 
 </Listing>
 
-When we run this code, we get the behavior we expected initially:
+当我们运行这段代码时，得到了最初预期的行为：
 
 <!-- manual-regeneration
 cd listings/ch17-async-await/listing-17-04
@@ -289,59 +142,33 @@ The title for https://www.rust-lang.org was
             Rust Programming Language
 ```
 
-Phew—we finally have some working async code! But before we add the code to
-race two sites against each other, let’s briefly turn our attention back to how
-futures work.
+呼——我们终于有了一些可工作的异步代码！但在添加让两个站点相互竞速的代码之前，让我们先简要地将注意力转回到 future 的工作原理上。
 
-Each _await point_—that is, every place where the code uses the `await`
-keyword—represents a place where control is handed back to the runtime. To make
-that work, Rust needs to keep track of the state involved in the async block so
-that the runtime could kick off some other work and then come back when it’s
-ready to try advancing the first one again. This is an invisible state machine,
-as if you’d written an enum like this to save the current state at each await
-point:
+每个*等待点（await point）*——即代码使用 `await` 关键字的每个位置——都代表控制权被交还给运行时的位置。为了实现这一点，Rust 需要跟踪 async 代码块中涉及的状态，以便运行时可以启动其他工作，然后在准备好再次尝试推进第一个工作时回来。这是一个不可见的状态机，就好像你编写了一个类似如下的枚举来保存每个等待点的当前状态：
 
 ```rust
 {{#rustdoc_include ../listings/ch17-async-await/no-listing-state-machine/src/lib.rs:enum}}
 ```
 
-Writing the code to transition between each state by hand would be tedious and
-error-prone, however, especially when you need to add more functionality and
-more states to the code later. Fortunately, the Rust compiler creates and
-manages the state machine data structures for async code automatically. The
-normal borrowing and ownership rules around data structures all still apply,
-and happily, the compiler also handles checking those for us and provides
-useful error messages. We’ll work through a few of those later in the chapter.
+然而，手动编写在每个状态之间转换的代码将是繁琐且容易出错的，尤其是当你以后需要向代码中添加更多功能和更多状态时。幸运的是，Rust 编译器会自动创建和管理异步代码的状态机数据结构。通常的借用和所有权规则仍然适用于数据结构，值得高兴的是，编译器也会处理这些检查，并提供有用的错误信息。我们将在本章后面处理其中一些。
 
-Ultimately, something has to execute this state machine, and that something is
-a runtime. (This is why you may come across mentions of _executors_ when
-looking into runtimes: an executor is the part of a runtime responsible for
-executing the async code.)
+最终，必须由某个东西来执行这个状态机，而那个东西就是运行时。（这就是为什么你在查阅运行时相关资料时可能会遇到*执行器（executor）*这个词：执行器是运行时负责执行异步代码的那部分。）
 
-Now you can see why the compiler stopped us from making `main` itself an async
-function back in Listing 17-3. If `main` were an async function, something else
-would need to manage the state machine for whatever future `main` returned, but
-`main` is the starting point for the program! Instead, we called the
-`trpl::block_on` function in `main` to set up a runtime and run the future
-returned by the `async` block until it’s done.
+现在你可以看到为什么编译器在示例 17-3 中阻止我们将 `main` 本身设为异步函数了。如果 `main` 是一个异步函数，那么就需要其他东西来管理 `main` 返回的任何 future 的状态机，但 `main` 是程序的起点！相反，我们在 `main` 中调用了 `trpl::block_on` 函数，以设置一个运行时，并运行 `async` 代码块返回的 future，直到它完成。
 
-> Note: Some runtimes provide macros so you _can_ write an async `main`
-> function. Those macros rewrite `async fn main() { ... }` to be a normal `fn
-> main`, which does the same thing we did by hand in Listing 17-4: call a
-> function that runs a future to completion the way `trpl::block_on` does.
+> 注意：一些运行时提供了宏，因此你*可以*编写一个异步 `main` 函数。这些宏将 `async fn main() { ... }` 重写为一个普通的 `fn main`，其所做的与我们手动在示例 17-4 中所做的相同：调用一个函数来运行 future 直到完成，就像 `trpl::block_on` 所做的那样。
 
-Now let’s put these pieces together and see how we can write concurrent code.
+现在，让我们把这些部分组合起来，看看如何编写并发代码。
 
 <!-- Old headings. Do not remove or links may break. -->
 
 <a id="racing-our-two-urls-against-each-other"></a>
 
-### Racing Two URLs Against Each Other Concurrently
+### 并发地让两个 URL 相互竞速
 
-In Listing 17-5, we call `page_title` with two different URLs passed in from the
-command line and race them by selecting whichever future finishes first.
+在示例 17-5 中，我们使用从命令行传入的两个不同 URL 调用 `page_title`，并通过选择先完成哪个 future 让它们竞速。
 
-<Listing number="17-5" caption="Calling `page_title` for two URLs to see which returns first" file-name="src/main.rs">
+<Listing number="17-5" caption="为两个 URL 调用 `page_title` 以查看哪个先返回" file-name="src/main.rs">
 
 <!-- should_panic,noplayground because mdbook does not pass args -->
 
@@ -351,23 +178,11 @@ command line and race them by selecting whichever future finishes first.
 
 </Listing>
 
-We begin by calling `page_title` for each of the user-supplied URLs. We save
-the resulting futures as `title_fut_1` and `title_fut_2`. Remember, these don’t
-do anything yet, because futures are lazy and we haven’t yet awaited them. Then
-we pass the futures to `trpl::select`, which returns a value to indicate which
-of the futures passed to it finishes first.
+我们首先为用户提供的每个 URL 调用 `page_title`。我们将生成的 future 保存为 `title_fut_1` 和 `title_fut_2`。请记住，这些尚未做任何事情，因为 future 是惰性的，而且我们尚未等待它们。然后我们将这些 future 传递给 `trpl::select`，它返回一个值来指示传入的哪个 future 最先完成。
 
-> Note: Under the hood, `trpl::select` is built on a more general `select`
-> function defined in the `futures` crate. The `futures` crate’s `select`
-> function can do a lot of things that the `trpl::select` function can’t, but
-> it also has some additional complexity that we can skip over for now.
+> 注意：在底层，`trpl::select` 是基于 `futures` crate 中定义的一个更通用的 `select` 函数构建的。`futures` crate 的 `select` 函数可以做很多 `trpl::select` 函数做不到的事情，但它也有一些额外的复杂性，我们现在可以跳过不管。
 
-Either future can legitimately “win,” so it doesn’t make sense to return a
-`Result`. Instead, `trpl::select` returns a type we haven’t seen before,
-`trpl::Either`. The `Either` type is somewhat similar to a `Result` in that it
-has two cases. Unlike `Result`, though, there is no notion of success or
-failure baked into `Either`. Instead, it uses `Left` and `Right` to indicate
-“one or the other”:
+任意一个 future 都可以合法地"胜出"，因此返回 `Result` 没有意义。相反，`trpl::select` 返回一个我们之前没见过的类型——`trpl::Either`。`Either` 类型在某种程度上类似于 `Result`，它也有两种情况。但与 `Result` 不同的是，`Either` 中没有内置成功或失败的概念。相反，它使用 `Left` 和 `Right` 来表示"非此即彼"：
 
 ```rust
 enum Either<A, B> {
@@ -376,22 +191,11 @@ enum Either<A, B> {
 }
 ```
 
-The `select` function returns `Left` with that future’s output if the first
-argument wins, and `Right` with the second future argument’s output if _that_
-one wins. This matches the order the arguments appear in when calling the
-function: the first argument is to the left of the second argument.
+`select` 函数在第一个参数胜出时返回包含该 future 输出的 `Left`，在第二个 future 参数胜出时返回包含*该* future 输出的 `Right`。这与参数在调用函数时的顺序一致：第一个参数位于第二个参数的左侧。
 
-We also update `page_title` to return the same URL passed in. That way, if the
-page that returns first does not have a `<title>` we can resolve, we can still
-print a meaningful message. With that information available, we wrap up by
-updating our `println!` output to indicate both which URL finished first and
-what, if any, the `<title>` is for the web page at that URL.
+我们还更新了 `page_title`，使其返回传入的相同 URL。这样，如果首先返回的页面没有可解析的 `<title>`，我们仍然可以打印一条有意义的消息。有了这些可用信息，我们更新 `println!` 输出，以指示哪个 URL 最先完成，以及该 URL 对应网页的 `<title>` 是什么（如果有的话）。
 
-You have built a small working web scraper now! Pick a couple URLs and run the
-command line tool. You may discover that some sites are consistently faster
-than others, while in other cases the faster site varies from run to run. More
-importantly, you’ve learned the basics of working with futures, so now we can
-dig deeper into what we can do with async.
+现在你已经构建了一个可以工作的小型网页抓取器！选几个 URL 并运行命令行工具。你可能会发现某些站点始终比其他站点更快，而在其他情况下，更快的站点因运行而异。更重要的是，你已经学习了使用 future 的基础知识，现在我们可以更深入地探讨 async 能做什么。
 
 [impl-trait]: ch10-02-traits.html#traits-as-parameters
 [iterators-lazy]: ch13-02-iterators.html

@@ -1,35 +1,22 @@
-## Pattern Syntax
+## 模式语法
 
-In this section, we gather all the syntax that is valid in patterns and discuss
-why and when you might want to use each one.
+在本节中，我们汇总了所有在模式中有效的语法，并讨论为什么以及何时你可能想要使用每一种。
 
-### Matching Literals
+### 匹配字面量
 
-As you saw in Chapter 6, you can match patterns against literals directly. The
-following code gives some examples:
+正如你在第 6 章中看到的，你可以直接将模式与字面量进行匹配。以下代码给出了一些示例：
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/no-listing-01-literals/src/main.rs:here}}
 ```
 
-This code prints `one` because the value in `x` is `1`. This syntax is useful
-when you want your code to take an action if it gets a particular concrete
-value.
+这段代码打印 `one`，因为 `x` 中的值是 `1`。当你希望代码在接收到某个特定的具体值时采取行动，这种语法非常有用。
 
-### Matching Named Variables
+### 匹配命名变量
 
-Named variables are irrefutable patterns that match any value, and we’ve used
-them many times in this book. However, there is a complication when you use
-named variables in `match`, `if let`, or `while let` expressions. Because each
-of these kinds of expressions starts a new scope, variables declared as part of
-a pattern inside these expressions will shadow those with the same name outside
-the constructs, as is the case with all variables. In Listing 19-11, we declare
-a variable named `x` with the value `Some(5)` and a variable `y` with the value
-`10`. We then create a `match` expression on the value `x`. Look at the
-patterns in the match arms and `println!` at the end, and try to figure out
-what the code will print before running this code or reading further.
+命名变量是不可反驳的模式，可以匹配任何值，我们在本书中已经多次使用过它们。然而，当你在 `match`、`if let` 或 `while let` 表达式中使用命名变量时，会遇到一个复杂情况。因为这些表达式都会开启一个新的作用域，在这些表达式内部作为模式一部分声明的变量，会像所有变量一样遮蔽外部的同名变量。在清单 19-11 中，我们声明了一个值为 `Some(5)` 的变量 `x`，以及一个值为 `10` 的变量 `y`。然后，我们在值 `x` 上创建了一个 `match` 表达式。请查看匹配分支中的模式和末尾的 `println!`，并在运行此代码或继续阅读之前，试着弄清楚代码会打印什么。
 
-<Listing number="19-11" file-name="src/main.rs" caption="A `match` expression with an arm that introduces a new variable which shadows an existing variable `y`">
+<Listing number="19-11" file-name="src/main.rs" caption="一个 `match` 表达式，其中一个分支引入了一个遮蔽现有变量 `y` 的新变量">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-11/src/main.rs:here}}
@@ -37,96 +24,62 @@ what the code will print before running this code or reading further.
 
 </Listing>
 
-Let’s walk through what happens when the `match` expression runs. The pattern
-in the first match arm doesn’t match the defined value of `x`, so the code
-continues.
+让我们来逐步分析 `match` 表达式运行时发生了什么。第一个匹配分支的模式不匹配 `x` 的定义值，因此代码继续执行。
 
-The pattern in the second match arm introduces a new variable named `y` that
-will match any value inside a `Some` value. Because we’re in a new scope inside
-the `match` expression, this is a new `y` variable, not the `y` we declared at
-the beginning with the value `10`. This new `y` binding will match any value
-inside a `Some`, which is what we have in `x`. Therefore, this new `y` binds to
-the inner value of the `Some` in `x`. That value is `5`, so the expression for
-that arm executes and prints `Matched, y = 5`.
+第二个匹配分支的模式引入了一个名为 `y` 的新变量，它将匹配 `Some` 值中的任何值。因为我们处于 `match` 表达式内部的新作用域中，这是一个新的 `y` 变量，不是我们在开头声明的值为 `10` 的那个 `y`。这个新的 `y` 绑定会匹配 `Some` 中的任何值，而这正是 `x` 中的情况。因此，这个新的 `y` 绑定到了 `x` 中 `Some` 的内部值。该值为 `5`，因此该分支的表达式执行并打印 `Matched, y = 5`。
 
-If `x` had been a `None` value instead of `Some(5)`, the patterns in the first
-two arms wouldn’t have matched, so the value would have matched to the
-underscore. We didn’t introduce the `x` variable in the pattern of the
-underscore arm, so the `x` in the expression is still the outer `x` that hasn’t
-been shadowed. In this hypothetical case, the `match` would print `Default case,
-x = None`.
+如果 `x` 是 `None` 值而不是 `Some(5)`，前两个分支的模式都不会匹配，因此值将匹配下划线。我们没有在下划线分支的模式中引入 `x` 变量，因此表达式中的 `x` 仍然是未被遮蔽的外部 `x`。在这种假设情况下，`match` 将打印 `Default case, x = None`。
 
-When the `match` expression is done, its scope ends, and so does the scope of
-the inner `y`. The last `println!` produces `at the end: x = Some(5), y = 10`.
+当 `match` 表达式结束时，它的作用域也随之结束，内部 `y` 的作用域也是如此。最后的 `println!` 输出 `at the end: x = Some(5), y = 10`。
 
-To create a `match` expression that compares the values of the outer `x` and
-`y`, rather than introducing a new variable that shadows the existing `y`
-variable, we would need to use a match guard conditional instead. We’ll talk
-about match guards later in the [“Adding Conditionals with Match
-Guards”](#adding-conditionals-with-match-guards)<!-- ignore --> section.
+要创建一个 `match` 表达式来比较外部 `x` 和 `y` 的值，而不是引入一个遮蔽现有 `y` 变量的新变量，我们需要改用匹配守卫（match guard）条件。我们将在后面的[“使用匹配守卫添加条件”](#adding-conditionals-with-match-guards)<!-- ignore -->部分讨论匹配守卫。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 <a id="multiple-patterns"></a>
 
-### Matching Multiple Patterns
+### 匹配多个模式
 
-In `match` expressions, you can match multiple patterns using the `|` syntax,
-which is the pattern _or_ operator. For example, in the following code, we match
-the value of `x` against the match arms, the first of which has an _or_ option,
-meaning if the value of `x` matches either of the values in that arm, that
-arm’s code will run:
-
+在 `match` 表达式中，你可以使用 `|` 语法匹配多个模式，这是模式的*或（or）*运算符。例如，在以下代码中，我们将 `x` 的值与匹配分支进行匹配，第一个分支有一个*或*选项，意味着如果 `x` 的值匹配该分支中的任何一个值，该分支的代码就会运行：
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/no-listing-02-multiple-patterns/src/main.rs:here}}
 ```
 
-This code prints `one or two`.
+这段代码打印 `one or two`。
 
-### Matching Ranges of Values with `..=`
+### 使用 `..=` 匹配值的范围
 
-The `..=` syntax allows us to match to an inclusive range of values. In the
-following code, when a pattern matches any of the values within the given
-range, that arm will execute:
+`..=` 语法允许我们匹配一个包含的范围（inclusive range）内的值。在以下代码中，当模式匹配给定范围内的任何一个值时，该分支将执行：
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/no-listing-03-ranges/src/main.rs:here}}
 ```
 
-If `x` is `1`, `2`, `3`, `4`, or `5`, the first arm will match. This syntax is
-more convenient for multiple match values than using the `|` operator to
-express the same idea; if we were to use `|`, we would have to specify `1 | 2 |
-3 | 4 | 5`. Specifying a range is much shorter, especially if we want to match,
-say, any number between 1 and 1,000!
+如果 `x` 是 `1`、`2`、`3`、`4` 或 `5`，第一个分支将匹配。这种语法对于多个匹配值来说，比使用 `|` 运算符表达相同的意思更方便；如果我们使用 `|`，将不得不指定 `1 | 2 | 3 | 4 | 5`。指定范围要简短得多，特别是如果我们想要匹配，比如，1 到 1,000 之间的任何数字！
 
-The compiler checks that the range isn’t empty at compile time, and because the
-only types for which Rust can tell if a range is empty or not are `char` and
-numeric values, ranges are only allowed with numeric or `char` values.
+编译器在编译时会检查范围是否为空，由于 Rust 唯一能判断范围是否为空或非空的类型是 `char` 和数值类型，因此范围只允许用于数值或 `char` 值。
 
-Here is an example using ranges of `char` values:
+以下是一个使用 `char` 值范围的示例：
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/no-listing-04-ranges-of-char/src/main.rs:here}}
 ```
 
-Rust can tell that `'c'` is within the first pattern’s range and prints `early
-ASCII letter`.
+Rust 可以判断出 `'c'` 位于第一个模式的范围内，并打印 `early ASCII letter`。
 
-### Destructuring to Break Apart Values
+### 解构以分解值
 
-We can also use patterns to destructure structs, enums, and tuples to use
-different parts of these values. Let’s walk through each value.
+我们还可以使用模式来解构结构体、枚举和元组，以便使用这些值的不同部分。让我们逐一介绍每种值。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="destructuring-structs"></a>
 
-#### Structs
+#### 结构体
 
-Listing 19-12 shows a `Point` struct with two fields, `x` and `y`, that we can
-break apart using a pattern with a `let` statement.
+清单 19-12 展示了一个具有两个字段 `x` 和 `y` 的 `Point` 结构体，我们可以使用带有模式的 `let` 语句将其分解。
 
-<Listing number="19-12" file-name="src/main.rs" caption="Destructuring a struct’s fields into separate variables">
+<Listing number="19-12" file-name="src/main.rs" caption="将结构体的字段解构为单独的变量">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-12/src/main.rs}}
@@ -134,19 +87,9 @@ break apart using a pattern with a `let` statement.
 
 </Listing>
 
-This code creates the variables `a` and `b` that match the values of the `x`
-and `y` fields of the `p` struct. This example shows that the names of the
-variables in the pattern don’t have to match the field names of the struct.
-However, it’s common to match the variable names to the field names to make it
-easier to remember which variables came from which fields. Because of this
-common usage, and because writing `let Point { x: x, y: y } = p;` contains a
-lot of duplication, Rust has a shorthand for patterns that match struct fields:
-You only need to list the name of the struct field, and the variables created
-from the pattern will have the same names. Listing 19-13 behaves in the same
-way as the code in Listing 19-12, but the variables created in the `let`
-pattern are `x` and `y` instead of `a` and `b`.
+这段代码创建了变量 `a` 和 `b`，它们匹配 `p` 结构体的 `x` 和 `y` 字段的值。这个示例表明，模式中变量的名称不必与结构体的字段名称相同。然而，通常的做法是让变量名称与字段名称匹配，以便更容易记住哪些变量来自哪些字段。由于这种常见用法，并且编写 `let Point { x: x, y: y } = p;` 包含大量重复，Rust 为匹配结构体字段的模式提供了一种简写形式：你只需列出结构体字段的名称，从模式中创建的变量将具有相同的名称。清单 19-13 的行为与清单 19-12 中的代码相同，但 `let` 模式中创建的变量是 `x` 和 `y`，而不是 `a` 和 `b`。
 
-<Listing number="19-13" file-name="src/main.rs" caption="Destructuring struct fields using struct field shorthand">
+<Listing number="19-13" file-name="src/main.rs" caption="使用结构体字段简写解构结构体字段">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-13/src/main.rs}}
@@ -154,20 +97,13 @@ pattern are `x` and `y` instead of `a` and `b`.
 
 </Listing>
 
-This code creates the variables `x` and `y` that match the `x` and `y` fields
-of the `p` variable. The outcome is that the variables `x` and `y` contain the
-values from the `p` struct.
+此代码创建了变量 `x` 和 `y`，它们匹配 `p` 变量的 `x` 和 `y` 字段。结果是变量 `x` 和 `y` 包含了来自 `p` 结构体的值。
 
-We can also destructure with literal values as part of the struct pattern
-rather than creating variables for all the fields. Doing so allows us to test
-some of the fields for particular values while creating variables to
-destructure the other fields.
+我们还可以在结构体模式中使用字面量值进行解构，而不是为所有字段创建变量。这样做允许我们测试某些字段是否为特定值，同时为其他字段创建变量以进行解构。
 
-In Listing 19-14, we have a `match` expression that separates `Point` values
-into three cases: points that lie directly on the `x` axis (which is true when
-`y = 0`), on the `y` axis (`x = 0`), or on neither axis.
+在清单 19-14 中，我们有一个 `match` 表达式，它将 `Point` 值分为三种情况：位于 `x` 轴上的点（当 `y = 0` 时为真）、位于 `y` 轴上的点（`x = 0`），以及不在任一轴上的点。
 
-<Listing number="19-14" file-name="src/main.rs" caption="Destructuring and matching literal values in one pattern">
+<Listing number="19-14" file-name="src/main.rs" caption="在一个模式中解构和匹配字面量值">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-14/src/main.rs:here}}
@@ -175,35 +111,23 @@ into three cases: points that lie directly on the `x` axis (which is true when
 
 </Listing>
 
-The first arm will match any point that lies on the `x` axis by specifying that
-the `y` field matches if its value matches the literal `0`. The pattern still
-creates an `x` variable that we can use in the code for this arm.
+第一个分支通过指定当 `y` 字段的值匹配字面量 `0` 时匹配，从而匹配任何位于 `x` 轴上的点。该模式仍然创建了一个 `x` 变量，我们可以在该分支的代码中使用它。
 
-Similarly, the second arm matches any point on the `y` axis by specifying that
-the `x` field matches if its value is `0` and creates a variable `y` for the
-value of the `y` field. The third arm doesn’t specify any literals, so it
-matches any other `Point` and creates variables for both the `x` and `y` fields.
+类似地，第二个分支通过指定当 `x` 字段的值为 `0` 时匹配，从而匹配任何位于 `y` 轴上的点，并为 `y` 字段的值创建一个变量 `y`。第三个分支没有指定任何字面量，因此它匹配任何其他 `Point`，并为 `x` 和 `y` 字段都创建变量。
 
-In this example, the value `p` matches the second arm by virtue of `x`
-containing a `0`, so this code will print `On the y axis at 7`.
+在这个示例中，值 `p` 因为 `x` 包含 `0` 而匹配了第二个分支，因此这段代码将打印 `On the y axis at 7`。
 
-Remember that a `match` expression stops checking arms once it has found the
-first matching pattern, so even though `Point { x: 0, y: 0 }` is on the `x` axis
-and the `y` axis, this code would only print `On the x axis at 0`.
+请记住，`match` 表达式一旦找到第一个匹配的模式就会停止检查分支，因此即使 `Point { x: 0, y: 0 }` 同时位于 `x` 轴和 `y` 轴上，这段代码也只会打印 `On the x axis at 0`。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="destructuring-enums"></a>
 
-#### Enums
+#### 枚举
 
-We’ve destructured enums in this book (for example, Listing 6-5 in Chapter 6),
-but we haven’t yet explicitly discussed that the pattern to destructure an enum
-corresponds to the way the data stored within the enum is defined. As an
-example, in Listing 19-15, we use the `Message` enum from Listing 6-2 and write
-a `match` with patterns that will destructure each inner value.
+我们在本书中已经解构过枚举（例如，第 6 章的清单 6-5），但尚未明确讨论的是，用于解构枚举的模式对应于枚举内部存储数据的定义方式。例如，在清单 19-15 中，我们使用了清单 6-2 中的 `Message` 枚举，并编写了一个 `match`，其模式将解构每个内部值。
 
-<Listing number="19-15" file-name="src/main.rs" caption="Destructuring enum variants that hold different kinds of values">
+<Listing number="19-15" file-name="src/main.rs" caption="解构持有不同类型值的枚举变体">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-15/src/main.rs}}
@@ -211,37 +135,23 @@ a `match` with patterns that will destructure each inner value.
 
 </Listing>
 
-This code will print `Change color to red 0, green 160, and blue 255`. Try
-changing the value of `msg` to see the code from the other arms run.
+这段代码将打印 `Change color to red 0, green 160, and blue 255`。尝试更改 `msg` 的值，以查看其他分支的代码运行情况。
 
-For enum variants without any data, like `Message::Quit`, we can’t destructure
-the value any further. We can only match on the literal `Message::Quit` value,
-and no variables are in that pattern.
+对于没有数据的枚举变体，例如 `Message::Quit`，我们无法进一步解构该值。我们只能匹配字面量 `Message::Quit` 值，并且该模式中没有变量。
 
-For struct-like enum variants, such as `Message::Move`, we can use a pattern
-similar to the pattern we specify to match structs. After the variant name, we
-place curly brackets and then list the fields with variables so that we break
-apart the pieces to use in the code for this arm. Here we use the shorthand
-form as we did in Listing 19-13.
+对于类似结构体的枚举变体，例如 `Message::Move`，我们可以使用类似于匹配结构体时指定的模式。在变体名称之后，我们放置花括号，然后列出带有变量的字段，以便分解出各个部分用于该分支的代码中。这里我们使用了与清单 19-13 中相同的简写形式。
 
-For tuple-like enum variants, like `Message::Write` that holds a tuple with one
-element and `Message::ChangeColor` that holds a tuple with three elements, the
-pattern is similar to the pattern we specify to match tuples. The number of
-variables in the pattern must match the number of elements in the variant we’re
-matching.
+对于类似元组的枚举变体，例如持有一个包含一个元素的元组的 `Message::Write` 和持有一个包含三个元素的元组的 `Message::ChangeColor`，其模式类似于我们指定用于匹配元组的模式。模式中的变量数量必须匹配我们要匹配的变体中的元素数量。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="destructuring-nested-structs-and-enums"></a>
 
-#### Nested Structs and Enums
+#### 嵌套的结构体和枚举
 
-So far, our examples have all been matching structs or enums one level deep,
-but matching can work on nested items too! For example, we can refactor the
-code in Listing 19-15 to support RGB and HSV colors in the `ChangeColor`
-message, as shown in Listing 19-16.
+到目前为止，我们的示例都只匹配一层深度的结构体或枚举，但匹配也可以作用于嵌套项！例如，我们可以重构清单 19-15 中的代码，以支持 `ChangeColor` 消息中的 RGB 和 HSV 颜色，如清单 19-16 所示。
 
-<Listing number="19-16" caption="Matching on nested enums">
+<Listing number="19-16" caption="匹配嵌套枚举">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-16/src/main.rs}}
@@ -249,55 +159,37 @@ message, as shown in Listing 19-16.
 
 </Listing>
 
-The pattern of the first arm in the `match` expression matches a
-`Message::ChangeColor` enum variant that contains a `Color::Rgb` variant; then,
-the pattern binds to the three inner `i32` values. The pattern of the second
-arm also matches a `Message::ChangeColor` enum variant, but the inner enum
-matches `Color::Hsv` instead. We can specify these complex conditions in one
-`match` expression, even though two enums are involved.
+`match` 表达式中第一个分支的模式匹配一个包含 `Color::Rgb` 变体的 `Message::ChangeColor` 枚举变体；然后，该模式绑定到三个内部的 `i32` 值。第二个分支的模式也匹配一个 `Message::ChangeColor` 枚举变体，但内部的枚举匹配的是 `Color::Hsv`。我们可以在一个 `match` 表达式中指定这些复杂的条件，即使涉及两个枚举。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="destructuring-structs-and-tuples"></a>
 
-#### Structs and Tuples
+#### 结构体和元组
 
-We can mix, match, and nest destructuring patterns in even more complex ways.
-The following example shows a complicated destructure where we nest structs and
-tuples inside a tuple and destructure all the primitive values out:
+我们可以以更复杂的方式混合、匹配和嵌套解构模式。以下示例展示了一个复杂的解构，我们在元组内嵌套了结构体和元组，并将所有基本类型的值解构出来：
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/no-listing-05-destructuring-structs-and-tuples/src/main.rs:here}}
 ```
 
-This code lets us break complex types into their component parts so that we can
-use the values we’re interested in separately.
+这段代码让我们将复杂类型分解为其组成部分，以便我们可以分别使用我们感兴趣的值。
 
-Destructuring with patterns is a convenient way to use pieces of values, such
-as the value from each field in a struct, separately from each other.
+使用模式解构是一种方便的方式，可以将值的各个部分（例如结构体中每个字段的值）彼此分开使用。
 
-### Ignoring Values in a Pattern
+### 忽略模式中的值
 
-You’ve seen that it’s sometimes useful to ignore values in a pattern, such as
-in the last arm of a `match`, to get a catch-all that doesn’t actually do
-anything but does account for all remaining possible values. There are a few
-ways to ignore entire values or parts of values in a pattern: using the `_`
-pattern (which you’ve seen), using the `_` pattern within another pattern,
-using a name that starts with an underscore, or using `..` to ignore remaining
-parts of a value. Let’s explore how and why to use each of these patterns.
+你已经看到，有时忽略模式中的值是很有用的，例如在 `match` 的最后一个分支中，使用一个实际上不执行任何操作但又占用了所有剩余可能值的万能分支。有几种方法可以忽略模式中的整个值或部分值：使用 `_` 模式（你已见过）、在另一个模式中使用 `_` 模式、使用以下划线开头的名称，或者使用 `..` 来忽略值的剩余部分。让我们探讨如何使用以及为什么使用这些模式中的每一种。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="ignoring-an-entire-value-with-_"></a>
 
-#### An Entire Value with `_`
+#### 使用 `_` 忽略整个值
 
-We’ve used the underscore as a wildcard pattern that will match any value but
-not bind to the value. This is especially useful as the last arm in a `match`
-expression, but we can also use it in any pattern, including function
-parameters, as shown in Listing 19-17.
+我们已经使用下划线作为通配符模式，它将匹配任何值但不会绑定到该值。这在 `match` 表达式的最后一个分支中特别有用，但我们也可以在任何模式中使用它，包括函数参数，如清单 19-17 所示。
 
-<Listing number="19-17" file-name="src/main.rs" caption="Using `_` in a function signature">
+<Listing number="19-17" file-name="src/main.rs" caption="在函数签名中使用 `_`">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-17/src/main.rs}}
@@ -305,31 +197,19 @@ parameters, as shown in Listing 19-17.
 
 </Listing>
 
-This code will completely ignore the value `3` passed as the first argument,
-and will print `This code only uses the y parameter: 4`.
+这段代码将完全忽略作为第一个参数传递的值 `3`，并打印 `This code only uses the y parameter: 4`。
 
-In most cases when you no longer need a particular function parameter, you
-would change the signature so that it doesn’t include the unused parameter.
-Ignoring a function parameter can be especially useful in cases when, for
-example, you’re implementing a trait when you need a certain type signature but
-the function body in your implementation doesn’t need one of the parameters.
-You then avoid getting a compiler warning about unused function parameters, as
-you would if you used a name instead.
+在大多数情况下，当你不再需要某个特定的函数参数时，你应该更改签名，使其不包含未使用的参数。但在某些情况下，忽略函数参数特别有用，例如当你正在实现一个 trait，需要某个特定的类型签名，但你的实现中的函数体并不需要其中一个参数时。这样你就可以避免得到关于未使用函数参数的编译器警告，而如果你使用一个名称，就会得到警告。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="ignoring-parts-of-a-value-with-a-nested-_"></a>
 
-#### Parts of a Value with a Nested `_`
+#### 使用嵌套的 `_` 忽略值的部分
 
-We can also use `_` inside another pattern to ignore just part of a value, for
-example, when we want to test for only part of a value but have no use for the
-other parts in the corresponding code we want to run. Listing 19-18 shows code
-responsible for managing a setting’s value. The business requirements are that
-the user should not be allowed to overwrite an existing customization of a
-setting but can unset the setting and give it a value if it is currently unset.
+我们还可以在另一个模式内部使用 `_` 来忽略值的某一部分，例如当我们只想测试值的某一部分，而对其他部分在相应要运行的代码中没有使用时。清单 19-18 展示了负责管理设置值的代码。业务要求是，用户不应允许覆盖设置的现有自定义值，但如果设置当前未设置，则可以取消设置并为其赋予一个值。
 
-<Listing number="19-18" caption="Using an underscore within patterns that match `Some` variants when we don’t need to use the value inside the `Some`">
+<Listing number="19-18" caption="当不需要使用 `Some` 内部的值时，在匹配 `Some` 变体的模式中使用下划线">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-18/src/main.rs:here}}
@@ -337,22 +217,13 @@ setting but can unset the setting and give it a value if it is currently unset.
 
 </Listing>
 
-This code will print `Can't overwrite an existing customized value` and then
-`setting is Some(5)`. In the first match arm, we don’t need to match on or use
-the values inside either `Some` variant, but we do need to test for the case
-when `setting_value` and `new_setting_value` are the `Some` variant. In that
-case, we print the reason for not changing `setting_value`, and it doesn’t get
-changed.
+这段代码将打印 `Can't overwrite an existing customized value`，然后打印 `setting is Some(5)`。在第一个匹配分支中，我们不需要匹配或使用任一 `Some` 变体内部的值，但我们需要测试 `setting_value` 和 `new_setting_value` 都是 `Some` 变体的情况。在这种情况下，我们打印不更改 `setting_value` 的原因，并且它不会被更改。
 
-In all other cases (if either `setting_value` or `new_setting_value` is `None`)
-expressed by the `_` pattern in the second arm, we want to allow
-`new_setting_value` to become `setting_value`.
+在所有其他情况下（如果 `setting_value` 或 `new_setting_value` 中有一个是 `None`），由第二个分支中的 `_` 模式表示，我们希望允许 `new_setting_value` 成为 `setting_value`。
 
-We can also use underscores in multiple places within one pattern to ignore
-particular values. Listing 19-19 shows an example of ignoring the second and
-fourth values in a tuple of five items.
+我们还可以在一个模式中的多个位置使用下划线来忽略特定的值。清单 19-19 展示了一个忽略五个元素元组中第二个和第四个值的示例。
 
-<Listing number="19-19" caption="Ignoring multiple parts of a tuple">
+<Listing number="19-19" caption="忽略元组中的多个部分">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-19/src/main.rs:here}}
@@ -360,24 +231,17 @@ fourth values in a tuple of five items.
 
 </Listing>
 
-This code will print `Some numbers: 2, 8, 32`, and the values `4` and `16` will
-be ignored.
+这段代码将打印 `Some numbers: 2, 8, 32`，而值 `4` 和 `16` 将被忽略。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="ignoring-an-unused-variable-by-starting-its-name-with-_"></a>
 
-#### An Unused Variable by Starting Its Name with `_`
+#### 通过以下划线开头名称来忽略未使用的变量
 
-If you create a variable but don’t use it anywhere, Rust will usually issue a
-warning because an unused variable could be a bug. However, sometimes it’s
-useful to be able to create a variable you won’t use yet, such as when you’re
-prototyping or just starting a project. In this situation, you can tell Rust
-not to warn you about the unused variable by starting the name of the variable
-with an underscore. In Listing 19-20, we create two unused variables, but when
-we compile this code, we should only get a warning about one of them.
+如果你创建了一个变量但从未使用过它，Rust 通常会发出警告，因为未使用的变量可能是一个 bug。然而，有时能够创建一个你暂时还不会使用的变量是有用的，例如当你正在做原型设计或刚开始一个项目时。在这种情况下，你可以通过以_下划线开头_的变量名来告诉 Rust 不要警告你未使用的变量。在清单 19-20 中，我们创建了两个未使用的变量，但当我们编译这段代码时，我们只应收到关于其中一个变量的警告。
 
-<Listing number="19-20" file-name="src/main.rs" caption="Starting a variable name with an underscore to avoid getting unused variable warnings">
+<Listing number="19-20" file-name="src/main.rs" caption="以下划线开头的变量名以避免未使用变量的警告">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-20/src/main.rs}}
@@ -385,15 +249,11 @@ we compile this code, we should only get a warning about one of them.
 
 </Listing>
 
-Here, we get a warning about not using the variable `y`, but we don’t get a
-warning about not using `_x`.
+在这里，我们收到了一个关于未使用变量 `y` 的警告，但没有收到关于未使用 `_x` 的警告。
 
-Note that there is a subtle difference between using only `_` and using a name
-that starts with an underscore. The syntax `_x` still binds the value to the
-variable, whereas `_` doesn’t bind at all. To show a case where this
-distinction matters, Listing 19-21 will provide us with an error.
+请注意，仅使用 `_` 和使用以下划线开头的名称之间存在细微差别。语法 `_x` 仍然将值绑定到变量，而 `_` 根本不会绑定。为了说明这种区别重要的情况，清单 19-21 将给我们一个错误。
 
-<Listing number="19-21" caption="An unused variable starting with an underscore still binds the value, which might take ownership of the value.">
+<Listing number="19-21" caption="以下划线开头的未使用变量仍然会绑定值，这可能会取得该值的所有权。">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-21/src/main.rs:here}}
@@ -401,12 +261,9 @@ distinction matters, Listing 19-21 will provide us with an error.
 
 </Listing>
 
-We’ll receive an error because the `s` value will still be moved into `_s`,
-which prevents us from using `s` again. However, using the underscore by itself
-doesn’t ever bind to the value. Listing 19-22 will compile without any errors
-because `s` doesn’t get moved into `_`.
+我们会收到一个错误，因为 `s` 值仍然会被移动到 `_s` 中，这阻止了我们再次使用 `s`。然而，仅使用下划线本身永远不会绑定到值。清单 19-22 将编译通过且没有任何错误，因为 `s` 没有被移动到 `_` 中。
 
-<Listing number="19-22" caption="Using an underscore does not bind the value.">
+<Listing number="19-22" caption="使用下划线不会绑定该值。">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-22/src/main.rs:here}}
@@ -414,21 +271,15 @@ because `s` doesn’t get moved into `_`.
 
 </Listing>
 
-This code works just fine because we never bind `s` to anything; it isn’t moved.
+这段代码运行得很好，因为我们从未将 `s` 绑定到任何东西；它没有被移动。
 
 <a id="ignoring-remaining-parts-of-a-value-with-"></a>
 
-#### Remaining Parts of a Value with `..`
+#### 使用 `..` 忽略值的剩余部分
 
-With values that have many parts, we can use the `..` syntax to use specific
-parts and ignore the rest, avoiding the need to list underscores for each
-ignored value. The `..` pattern ignores any parts of a value that we haven’t
-explicitly matched in the rest of the pattern. In Listing 19-23, we have a
-`Point` struct that holds a coordinate in three-dimensional space. In the
-`match` expression, we want to operate only on the `x` coordinate and ignore
-the values in the `y` and `z` fields.
+对于具有许多部分的值，我们可以使用 `..` 语法来使用特定部分并忽略其余部分，从而避免为每个忽略的值列出下划线。`..` 模式会忽略模式中未显式匹配的值的任何部分。在清单 19-23 中，我们有一个 `Point` 结构体，它保存了三维空间中的坐标。在 `match` 表达式中，我们只想操作 `x` 坐标，并忽略 `y` 和 `z` 字段的值。
 
-<Listing number="19-23" caption="Ignoring all fields of a `Point` except for `x` by using `..`">
+<Listing number="19-23" caption="使用 `..` 忽略 `Point` 中除 `x` 之外的所有字段">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-23/src/main.rs:here}}
@@ -436,15 +287,11 @@ the values in the `y` and `z` fields.
 
 </Listing>
 
-We list the `x` value and then just include the `..` pattern. This is quicker
-than having to list `y: _` and `z: _`, particularly when we’re working with
-structs that have lots of fields in situations where only one or two fields are
-relevant.
+我们列出了 `x` 的值，然后仅包含 `..` 模式。这比必须列出 `y: _` 和 `z: _` 更快捷，特别是当我们处理具有大量字段的结构体，而只有一两个字段相关时。
 
-The syntax `..` will expand to as many values as it needs to be. Listing 19-24
-shows how to use `..` with a tuple.
+`..` 语法会展开为它所需要匹配的任意数量的值。清单 19-24 展示了如何将 `..` 与元组一起使用。
 
-<Listing number="19-24" file-name="src/main.rs" caption="Matching only the first and last values in a tuple and ignoring all other values">
+<Listing number="19-24" file-name="src/main.rs" caption="仅匹配元组中的第一个和最后一个值，并忽略所有其他值">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-24/src/main.rs}}
@@ -452,15 +299,11 @@ shows how to use `..` with a tuple.
 
 </Listing>
 
-In this code, the first and last values are matched with `first` and `last`.
-The `..` will match and ignore everything in the middle.
+在这段代码中，第一个和最后一个值被匹配为 `first` 和 `last`。`..` 将匹配并忽略中间的所有内容。
 
-However, using `..` must be unambiguous. If it is unclear which values are
-intended for matching and which should be ignored, Rust will give us an error.
-Listing 19-25 shows an example of using `..` ambiguously, so it will not
-compile.
+然而，使用 `..` 必须是明确的。如果不清楚哪些值用于匹配、哪些应该被忽略，Rust 会给我们一个错误。清单 19-25 展示了一个模糊使用 `..` 的示例，因此它不会编译。
 
-<Listing number="19-25" file-name="src/main.rs" caption="An attempt to use `..` in an ambiguous way">
+<Listing number="19-25" file-name="src/main.rs" caption="尝试以模糊的方式使用 `..`">
 
 ```rust,ignore,does_not_compile
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-25/src/main.rs}}
@@ -468,37 +311,25 @@ compile.
 
 </Listing>
 
-When we compile this example, we get this error:
+当我们编译这个示例时，会得到以下错误：
 
 ```console
 {{#include ../listings/ch19-patterns-and-matching/listing-19-25/output.txt}}
 ```
 
-It’s impossible for Rust to determine how many values in the tuple to ignore
-before matching a value with `second` and then how many further values to
-ignore thereafter. This code could mean that we want to ignore `2`, bind
-`second` to `4`, and then ignore `8`, `16`, and `32`; or that we want to ignore
-`2` and `4`, bind `second` to `8`, and then ignore `16` and `32`; and so forth.
-The variable name `second` doesn’t mean anything special to Rust, so we get a
-compiler error because using `..` in two places like this is ambiguous.
+Rust 无法确定在匹配 `second` 值之前要忽略元组中的多少个值，然后再忽略之后还有多少个值。这段代码可能意味着我们希望忽略 `2`，将 `second` 绑定到 `4`，然后忽略 `8`、`16` 和 `32`；或者我们希望忽略 `2` 和 `4`，将 `second` 绑定到 `8`，然后忽略 `16` 和 `32`；等等。变量名 `second` 对 Rust 没有任何特殊含义，因此我们得到一个编译器错误，因为在两个位置像这样使用 `..` 是模糊的。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="extra-conditionals-with-match-guards"></a>
 
-### Adding Conditionals with Match Guards
+### 使用匹配守卫添加条件
 
-A _match guard_ is an additional `if` condition, specified after the pattern in
-a `match` arm, that must also match for that arm to be chosen. Match guards are
-useful for expressing more complex ideas than a pattern alone allows. Note,
-however, that they are only available in `match` expressions, not `if let` or
-`while let` expressions.
+*匹配守卫（match guard）*是 `match` 分支中模式之后指定的额外 `if` 条件，也必须满足该条件才能选择该分支。匹配守卫对于表达比单独模式更复杂的想法非常有用。但请注意，它们仅在 `match` 表达式中可用，不能在 `if let` 或 `while let` 表达式中使用。
 
-The condition can use variables created in the pattern. Listing 19-26 shows a
-`match` where the first arm has the pattern `Some(x)` and also has a match
-guard of `if x % 2 == 0` (which will be `true` if the number is even).
+该条件可以使用模式中创建的变量。清单 19-26 展示了一个 `match`，其中第一个分支的模式是 `Some(x)`，并且还有一个匹配守卫 `if x % 2 == 0`（如果该数字是偶数，则为 `true`）。
 
-<Listing number="19-26" caption="Adding a match guard to a pattern">
+<Listing number="19-26" caption="为模式添加匹配守卫">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-26/src/main.rs:here}}
@@ -506,29 +337,15 @@ guard of `if x % 2 == 0` (which will be `true` if the number is even).
 
 </Listing>
 
-This example will print `The number 4 is even`. When `num` is compared to the
-pattern in the first arm, it matches because `Some(4)` matches `Some(x)`. Then,
-the match guard checks whether the remainder of dividing `x` by 2 is equal to
-0, and because it is, the first arm is selected.
+此示例将打印 `The number 4 is even`。当 `num` 与第一个分支中的模式进行比较时，它匹配是因为 `Some(4)` 匹配 `Some(x)`。然后，匹配守卫检查 `x` 除以 2 的余数是否等于 0，由于的确如此，因此选择了第一个分支。
 
-If `num` had been `Some(5)` instead, the match guard in the first arm would
-have been `false` because the remainder of 5 divided by 2 is 1, which is not
-equal to 0. Rust would then go to the second arm, which would match because the
-second arm doesn’t have a match guard and therefore matches any `Some` variant.
+如果 `num` 是 `Some(5)`，第一个分支中的匹配守卫将是 `false`，因为 5 除以 2 的余数是 1，不等于 0。然后 Rust 将转到第二个分支，它会匹配，因为第二个分支没有匹配守卫，因此匹配任何 `Some` 变体。
 
-There is no way to express the `if x % 2 == 0` condition within a pattern, so
-the match guard gives us the ability to express this logic. The downside of
-this additional expressiveness is that the compiler doesn’t try to check for
-exhaustiveness when match guard expressions are involved.
+无法在模式内部表达 `if x % 2 == 0` 条件，因此匹配守卫赋予了我们表达这种逻辑的能力。这种额外表达能力的缺点是，当涉及匹配守卫表达式时，编译器不会尝试检查穷尽性。
 
-When discussing Listing 19-11, we mentioned that we could use match guards to
-solve our pattern-shadowing problem. Recall that we created a new variable
-inside the pattern in the `match` expression instead of using the variable
-outside the `match`. That new variable meant we couldn’t test against the value
-of the outer variable. Listing 19-27 shows how we can use a match guard to fix
-this problem.
+在讨论清单 19-11 时，我们提到可以使用匹配守卫来解决模式遮蔽问题。回想一下，我们在 `match` 表达式的模式中创建了一个新变量，而不是使用 `match` 外部的变量。那个新变量意味着我们无法测试外部变量的值。清单 19-27 展示了如何使用匹配守卫来解决这个问题。
 
-<Listing number="19-27" file-name="src/main.rs" caption="Using a match guard to test for equality with an outer variable">
+<Listing number="19-27" file-name="src/main.rs" caption="使用匹配守卫测试与外部变量的相等性">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-27/src/main.rs}}
@@ -536,26 +353,13 @@ this problem.
 
 </Listing>
 
-This code will now print `Default case, x = Some(5)`. The pattern in the second
-match arm doesn’t introduce a new variable `y` that would shadow the outer `y`,
-meaning we can use the outer `y` in the match guard. Instead of specifying the
-pattern as `Some(y)`, which would have shadowed the outer `y`, we specify
-`Some(n)`. This creates a new variable `n` that doesn’t shadow anything because
-there is no `n` variable outside the `match`.
+这段代码现在将打印 `Default case, x = Some(5)`。第二个匹配分支中的模式没有引入新的变量 `y` 来遮蔽外部的 `y`，这意味着我们可以在匹配守卫中使用外部的 `y`。我们不将模式指定为 `Some(y)`（这会遮蔽外部的 `y`），而是指定为 `Some(n)`。这创建了一个新的变量 `n`，它不会遮蔽任何东西，因为在 `match` 外部没有 `n` 变量。
 
-The match guard `if n == y` is not a pattern and therefore doesn’t introduce new
-variables. This `y` _is_ the outer `y` rather than a new `y` shadowing it, and
-we can look for a value that has the same value as the outer `y` by comparing
-`n` to `y`.
+匹配守卫 `if n == y` 不是一个模式，因此不会引入新变量。这个 `y` 就是外部的 `y`，而不是一个遮蔽它的新 `y`，我们可以通过比较 `n` 和 `y` 来查找与外部 `y` 具有相同值的值。
 
-You can also use the _or_ operator `|` in a match guard to specify multiple
-patterns; the match guard condition will apply to all the patterns. Listing
-19-28 shows the precedence when combining a pattern that uses `|` with a match
-guard. The important part of this example is that the `if y` match guard
-applies to `4`, `5`, _and_ `6`, even though it might look like `if y` only
-applies to `6`.
+你也可以在匹配守卫中使用*或*运算符 `|` 来指定多个模式；匹配守卫条件将应用于所有模式。清单 19-28 展示了将使用 `|` 的模式与匹配守卫结合时的优先级。此示例的重要部分是 `if y` 匹配守卫应用于 `4`、`5` *和* `6`，即使可能看起来 `if y` 只应用于 `6`。
 
-<Listing number="19-28" caption="Combining multiple patterns with a match guard">
+<Listing number="19-28" caption="将多个模式与匹配守卫结合">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-28/src/main.rs:here}}
@@ -563,43 +367,29 @@ applies to `6`.
 
 </Listing>
 
-The match condition states that the arm only matches if the value of `x` is
-equal to `4`, `5`, or `6` _and_ if `y` is `true`. When this code runs, the
-pattern of the first arm matches because `x` is `4`, but the match guard `if y`
-is `false`, so the first arm is not chosen. The code moves on to the second
-arm, which does match, and this program prints `no`. The reason is that the
-`if` condition applies to the whole pattern `4 | 5 | 6`, not just to the last
-value `6`. In other words, the precedence of a match guard in relation to a
-pattern behaves like this:
+匹配条件表明，只有在 `x` 的值等于 `4`、`5` 或 `6` *并且* `y` 为 `true` 时，该分支才匹配。当这段代码运行时，第一个分支的模式匹配，因为 `x` 是 `4`，但匹配守卫 `if y` 是 `false`，因此没有选择第一个分支。代码继续到第二个分支，它确实匹配，此程序打印 `no`。原因是 `if` 条件应用于整个模式 `4 | 5 | 6`，而不仅仅是最后一个值 `6`。换句话说，匹配守卫相对于模式的优先级行为如下：
 
 ```text
 (4 | 5 | 6) if y => ...
 ```
 
-rather than this:
+而不是这样：
 
 ```text
 4 | 5 | (6 if y) => ...
 ```
 
-After running the code, the precedence behavior is evident: If the match guard
-were applied only to the final value in the list of values specified using the
-`|` operator, the arm would have matched, and the program would have printed
-`yes`.
+运行代码后，优先级行为就很明显了：如果匹配守卫仅应用于使用 `|` 运算符指定的值列表中的最后一个值，那么该分支将匹配，程序将打印 `yes`。
 
-<!-- Old headings. Do not remove or links may break. -->
+<!-- 旧标题。请勿删除，否则链接可能失效。 -->
 
 <a id="-bindings"></a>
 
-### Using `@` Bindings
+### 使用 `@` 绑定
 
-The _at_ operator `@` lets us create a variable that holds a value at the same
-time we’re testing that value for a pattern match. In Listing 19-29, we want to
-test that a `Message::Hello` `id` field is within the range `3..=7`. We also
-want to bind the value to the variable `id` so that we can use it in the code
-associated with the arm.
+*at* 运算符 `@` 让我们在测试值是否匹配模式的同时，创建一个持有该值的变量。在清单 19-29 中，我们想测试 `Message::Hello` 的 `id` 字段是否在范围 `3..=7` 内。我们还希望将该值绑定到变量 `id`，以便在关联分支的代码中使用它。
 
-<Listing number="19-29" caption="Using `@` to bind to a value in a pattern while also testing it">
+<Listing number="19-29" caption="使用 `@` 在测试值的同时将其绑定到模式中的变量">
 
 ```rust
 {{#rustdoc_include ../listings/ch19-patterns-and-matching/listing-19-29/src/main.rs:here}}
@@ -607,33 +397,16 @@ associated with the arm.
 
 </Listing>
 
-This example will print `Found an id in range: 5`. By specifying `id @` before
-the range `3..=7`, we’re capturing whatever value matched the range in a
-variable named `id` while also testing that the value matched the range pattern.
+此示例将打印 `Found an id in range: 5`。通过在范围 `3..=7` 之前指定 `id @`，我们在测试该值是否匹配范围模式的同时，将匹配到范围的值捕获到一个名为 `id` 的变量中。
 
-In the second arm, where we only have a range specified in the pattern, the code
-associated with the arm doesn’t have a variable that contains the actual value
-of the `id` field. The `id` field’s value could have been 10, 11, or 12, but
-the code that goes with that pattern doesn’t know which it is. The pattern code
-isn’t able to use the value from the `id` field because we haven’t saved the
-`id` value in a variable.
+在第二个分支中，我们只在模式中指定了一个范围，该分支关联的代码没有一个包含 `id` 字段实际值的变量。`id` 字段的值可能是 10、11 或 12，但该模式关联的代码并不知道它是哪一个。模式代码无法使用 `id` 字段的值，因为我们没有将 `id` 值保存到变量中。
 
-In the last arm, where we’ve specified a variable without a range, we do have
-the value available to use in the arm’s code in a variable named `id`. The
-reason is that we’ve used the struct field shorthand syntax. But we haven’t
-applied any test to the value in the `id` field in this arm, as we did with the
-first two arms: Any value would match this pattern.
+在最后一个分支中，我们指定了一个没有范围的变量，我们确实有一个可在分支代码中使用的变量 `id` 中的值。原因是我们使用了结构体字段简写语法。但是，我们在这个分支中没有像前两个分支那样对 `id` 字段中的值进行任何测试：任何值都会匹配这个模式。
 
-Using `@` lets us test a value and save it in a variable within one pattern.
+使用 `@` 让我们可以在一个模式中测试值并将其保存到变量中。
 
-## Summary
+## 总结
 
-Rust’s patterns are very useful in distinguishing between different kinds of
-data. When used in `match` expressions, Rust ensures that your patterns cover
-every possible value, or your program won’t compile. Patterns in `let`
-statements and function parameters make those constructs more useful, enabling
-the destructuring of values into smaller parts and assigning those parts to
-variables. We can create simple or complex patterns to suit our needs.
+Rust 的模式在区分不同类型的数据时非常有用。当在 `match` 表达式中使用时，Rust 确保你的模式覆盖了所有可能的值，否则你的程序将无法编译。`let` 语句和函数参数中的模式使这些结构更加有用，支持将值解构为更小的部分并将这些部分赋值给变量。我们可以创建简单或复杂的模式来满足我们的需求。
 
-Next, for the penultimate chapter of the book, we’ll look at some advanced
-aspects of a variety of Rust’s features.
+接下来，作为本书倒数第二章，我们将探讨 Rust 各种特性的一些高级方面。
