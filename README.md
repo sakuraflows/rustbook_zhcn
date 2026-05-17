@@ -110,7 +110,7 @@ graph LR
 
 
 # 未来计划
-使用手搓+ai写一个基于ii8n.site或git2-rs+similar+pulldown-crmark从头编写一个支持如下功能的翻译模块：
+使用手搓+ai写一个基于git2-rs+similar+pulldown-crmark从头编写一个支持如下功能的翻译模块：
 - 检测英文文档是否更新变动
 - 将markdown内容解析为对象（文本段落、标题、注释、代码）
 - ai翻译
