@@ -100,6 +100,7 @@
 
 ```rust,ignore
 {{#rustdoc_include ../listings/ch13-functional-features/listing-13-22/src/lib.rs:here}}
+```
 </Listing>
 
 回想一下，`search` 函数的目的是返回 `contents` 中包含 `query` 的所有行。与示例 13-16 中的 `filter` 示例类似，此代码使用 `filter` 适配器仅保留 `line.contains(query)` 返回 `true` 的行。然后，我们使用 `collect` 将匹配的行收集到另一个向量中。简单多了！你也可以自由地对 `search_case_insensitive` 函数进行相同的更改以使用迭代器方法。

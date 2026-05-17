@@ -1,5 +1,5 @@
 # 《RUst程序设计语言》中文翻译（ai机翻）
-正在翻译中.....  
+
 主项目:[rust-lang/book](https://github.com/rust-lang/book)
 
 ### 本项目的特性
